@@ -1,7 +1,10 @@
 import "./style.css";
 
-const APP_NAME = "Goodbye";
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
-document.title = APP_NAME;
-app.innerHTML = APP_NAME;
+const appName = "An Ordinary Sketchpad";
+document.title = appName;
+
+const header = document.createElement("h1");
+header.innerHTML = appName;
+app.append(header);
