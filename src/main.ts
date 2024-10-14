@@ -15,15 +15,24 @@ canvas.setAttribute("width", "256px");
 app.append(canvas);
 
 const ctx = canvas.getContext("2d");
+const cursor = { active: false, x: 0, y: 0 };
 
 canvas.addEventListener("mousedown", (e) => {
-    ctx?.beginPath();
-    ctx?.moveTo(e.offsetX, e.offsetY);
+    cursor.active = true;
+    cursor.x = e.offsetX;
+    cursor.y = e.offsetY;
 })
 canvas.addEventListener("mousemove", (e) => {
-    ctx?.lineTo(e.offsetX, e.offsetY);
+    if (cursor.active) {
+        ctx?.beginPath();
+        ctx?.moveTo(cursor.x, cursor.y);
+        ctx?.lineTo(e.offsetX, e.offsetY);
+        ctx?.stroke();
+
+        cursor.x = e.offsetX;
+        cursor.y = e.offsetY;
+    }
 })
-canvas.addEventListener("mouseup", (e) => {
-    ctx?.lineTo(e.offsetX, e.offsetY);
-    ctx?.stroke();
+canvas.addEventListener("mouseup", () => {
+    cursor.active = false;
 })
