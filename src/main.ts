@@ -36,3 +36,8 @@ canvas.addEventListener("mousemove", (e) => {
 canvas.addEventListener("mouseup", () => {
     cursor.active = false;
 })
+
+const clearButton = document.createElement("button");
+clearButton.innerHTML = `clear`;
+clearButton.addEventListener("click", () => ctx?.clearRect(0, 0, 256, 256));
+app.append(clearButton);
