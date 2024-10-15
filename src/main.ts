@@ -14,6 +14,8 @@ canvas.setAttribute("height", "256px");
 canvas.setAttribute("width", "256px");
 app.append(canvas);
 
+const event = new Event("drawing-changed");
+
 const ctx = canvas.getContext("2d");
 const cursor = { active: false, x: 0, y: 0 };
 
@@ -36,8 +38,12 @@ canvas.addEventListener("mousemove", (e) => {
 canvas.addEventListener("mouseup", () => {
     cursor.active = false;
 })
+canvas.addEventListener("drawing-changed", () => {
+})
 
 const clearButton = document.createElement("button");
 clearButton.innerHTML = `clear`;
-clearButton.addEventListener("click", () => ctx?.clearRect(0, 0, 256, 256));
+clearButton.addEventListener("click", () => {
+    ctx?.clearRect(0, 0, canvas.width, canvas.height);
+})
 app.append(clearButton);
