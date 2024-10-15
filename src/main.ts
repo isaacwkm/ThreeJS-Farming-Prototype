@@ -31,7 +31,7 @@ canvas.addEventListener("mousedown", (e) => {
     cursor.active = true;
     cursor.x = e.offsetX;
     cursor.y = e.offsetY;
-    
+
     paths.push(currentPath);
     currentPath.push({ x: cursor.x, y: cursor.y });
     canvas.dispatchEvent(event);
@@ -40,7 +40,7 @@ canvas.addEventListener("mousemove", (e) => {
     if (cursor.active) {
         cursor.x = e.offsetX;
         cursor.y = e.offsetY;
-        currentPath?.push({ x: cursor.x, y: cursor.y });
+        currentPath.push({ x: cursor.x, y: cursor.y });
         canvas.dispatchEvent(event);
     }
 })
@@ -60,10 +60,20 @@ canvas.addEventListener("drawing-changed", () => {
     }
 })
 
+app.append(document.createElement("div"));
+
 const clearButton = document.createElement("button");
-clearButton.innerHTML = `clear`;
+clearButton.innerHTML = "Clear";
 clearButton.addEventListener("click", () => {
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
     paths.splice(0, paths.length);
 })
 app.append(clearButton);
+
+const undoButton = document.createElement("button");
+undoButton.innerHTML = "Undo";
+undoButton.addEventListener("click", () => {
+    if (paths.length > 0) paths.pop();
+    canvas.dispatchEvent(event);
+})
+app.append(undoButton);
