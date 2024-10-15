@@ -24,38 +24,37 @@ const cursor = { active: false, x: 0, y: 0 };
 
 const event = new Event("drawing-changed");
 
-const paths : Point[][] = [];
-let currentPath : Point[] = [];
+let currentLine : Point[] = [];
+const displayList : Point[][] = [];
+const redoLines : Point[][] = [];
 
 canvas.addEventListener("mousedown", (e) => {
     cursor.active = true;
     cursor.x = e.offsetX;
     cursor.y = e.offsetY;
 
-    paths.push(currentPath);
-    currentPath.push({ x: cursor.x, y: cursor.y });
+    displayList.push(currentLine);
+    currentLine.push({ x: cursor.x, y: cursor.y });
     canvas.dispatchEvent(event);
 })
 canvas.addEventListener("mousemove", (e) => {
     if (cursor.active) {
         cursor.x = e.offsetX;
         cursor.y = e.offsetY;
-        currentPath.push({ x: cursor.x, y: cursor.y });
+        currentLine.push({ x: cursor.x, y: cursor.y });
         canvas.dispatchEvent(event);
     }
 })
 canvas.addEventListener("mouseup", () => {
     cursor.active = false;
-    currentPath = [];
+    currentLine = [];
 })
 canvas.addEventListener("drawing-changed", () => {
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
-    for (const path of paths) {
+    for (const line of displayList) {
         ctx?.beginPath();
-        ctx?.moveTo(path[0].x, path[0].y);
-        for (const point of path) {
-            ctx?.lineTo(point.x, point.y);
-        }
+        ctx?.moveTo(line[0].x, line[0].y);
+        for (const point of line) ctx?.lineTo(point.x, point.y);
         ctx?.stroke();
     }
 })
@@ -66,14 +65,29 @@ const clearButton = document.createElement("button");
 clearButton.innerHTML = "Clear";
 clearButton.addEventListener("click", () => {
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
-    paths.splice(0, paths.length);
+    displayList.splice(0, displayList.length);
+    redoLines.splice(0, redoLines.length);
 })
 app.append(clearButton);
 
 const undoButton = document.createElement("button");
 undoButton.innerHTML = "Undo";
 undoButton.addEventListener("click", () => {
-    if (paths.length > 0) paths.pop();
+    if (displayList.length > 0) {
+        let undoLine = displayList.pop();
+        if (undoLine) redoLines.push(undoLine);
+    }
     canvas.dispatchEvent(event);
 })
 app.append(undoButton);
+
+const redoButton = document.createElement("button");
+redoButton.innerHTML = "Redo";
+redoButton.addEventListener("click", () => {
+    if (redoLines.length > 0) {
+        let redoLine = redoLines.pop();
+        if (redoLine) displayList.push(redoLine);
+    }
+    canvas.dispatchEvent(event);
+})
+app.append(redoButton);
