@@ -32,7 +32,7 @@ let currentLine : Point[] = [];
 const displayList : Point[][] = [];
 const redoLines : Point[][] = [];
 
-class LineCommand implements DisplayCommand{
+class LineCommand implements DisplayCommand {
     public points : Point[];
 
     constructor(public x: number, public y: number) {
@@ -40,12 +40,12 @@ class LineCommand implements DisplayCommand{
     }
 
     display(context: CanvasRenderingContext2D) {
-        context.clearRect(0, 0, canvas.width, canvas.height);
         context.beginPath();
         context.moveTo(this.points[0].x, this.points[0].y);
         for (const point of this.points) {
             context.lineTo(point.x, point.y);
         }
+        context.stroke();
     }
 
     drag(x: number, y: number) {
@@ -53,7 +53,7 @@ class LineCommand implements DisplayCommand{
     }
 }
 
-let currentComand : DisplayCommand;
+let currentCommand : LineCommand;
 const commandList : DisplayCommand[] = [];
 
 canvas.addEventListener("mousedown", (e) => {
@@ -61,15 +61,19 @@ canvas.addEventListener("mousedown", (e) => {
     cursor.x = e.offsetX;
     cursor.y = e.offsetY;
 
-    displayList.push(currentLine);
-    currentLine.push({ x: cursor.x, y: cursor.y });
+    currentCommand = new LineCommand(cursor.x, cursor.y);
+    commandList.push(currentCommand);
+
+    //displayList.push(currentLine);
+    //currentLine.push({ x: cursor.x, y: cursor.y });
     canvas.dispatchEvent(drawingChanged);
 })
 canvas.addEventListener("mousemove", (e) => {
     if (cursor.active) {
         cursor.x = e.offsetX;
         cursor.y = e.offsetY;
-        currentLine.push({ x: cursor.x, y: cursor.y });
+        currentCommand.drag(cursor.x, cursor.y);
+        //currentLine.push({ x: cursor.x, y: cursor.y });
         canvas.dispatchEvent(drawingChanged);
     }
 })
@@ -79,12 +83,14 @@ canvas.addEventListener("mouseup", () => {
 })
 canvas.addEventListener("drawing-changed", () => {
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
-    for (const line of displayList) {
+
+    commandList.forEach((command) => { if (ctx) command.display(ctx) });
+    /*for (const line of displayList) {
         ctx?.beginPath();
         ctx?.moveTo(line[0].x, line[0].y);
         for (const point of line) ctx?.lineTo(point.x, point.y);
         ctx?.stroke();
-    }
+    }*/
 })
 
 app.append(document.createElement("div"));
@@ -93,23 +99,25 @@ const clearButton = document.createElement("button");
 clearButton.innerHTML = "Clear";
 clearButton.addEventListener("click", () => {
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
-    displayList.splice(0, displayList.length);
-    redoLines.splice(0, redoLines.length);
+    commandList.splice(0, commandList.length);
+    //displayList.splice(0, displayList.length);
+    //redoLines.splice(0, redoLines.length);
 })
 app.append(clearButton);
 
 const undoButton = document.createElement("button");
 undoButton.innerHTML = "Undo";
 undoButton.addEventListener("click", () => {
-    if (displayList.length > 0) {
+    if (commandList.length > 0) commandList.pop();
+    /*if (displayList.length > 0) {
         let undoLine = displayList.pop();
         if (undoLine) redoLines.push(undoLine);
-    }
+    }*/
     canvas.dispatchEvent(drawingChanged);
 })
 app.append(undoButton);
 
-const redoButton = document.createElement("button");
+/*const redoButton = document.createElement("button");
 redoButton.innerHTML = "Redo";
 redoButton.addEventListener("click", () => {
     if (redoLines.length > 0) {
@@ -118,4 +126,4 @@ redoButton.addEventListener("click", () => {
     }
     canvas.dispatchEvent(drawingChanged);
 })
-app.append(redoButton);
+app.append(redoButton);*/
