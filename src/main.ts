@@ -7,6 +7,10 @@ interface Point {
     y: number,
 }
 
+interface DisplayCommand {
+    display(context: CanvasRenderingContext2D): void;
+}
+
 const appName = "An Ordinary Sketchpad";
 document.title = appName;
 
@@ -22,11 +26,35 @@ app.append(canvas);
 const ctx = canvas.getContext("2d");
 const cursor = { active: false, x: 0, y: 0 };
 
-const event = new Event("drawing-changed");
+const drawingChanged = new Event("drawing-changed");
 
 let currentLine : Point[] = [];
 const displayList : Point[][] = [];
 const redoLines : Point[][] = [];
+
+class LineCommand implements DisplayCommand{
+    public points : Point[];
+
+    constructor(public x: number, public y: number) {
+        this.points = [{ x, y }];
+    }
+
+    display(context: CanvasRenderingContext2D) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.beginPath();
+        context.moveTo(this.points[0].x, this.points[0].y);
+        for (const point of this.points) {
+            context.lineTo(point.x, point.y);
+        }
+    }
+
+    drag(x: number, y: number) {
+        this.points.push({ x, y });
+    }
+}
+
+let currentComand : DisplayCommand;
+const commandList : DisplayCommand[] = [];
 
 canvas.addEventListener("mousedown", (e) => {
     cursor.active = true;
@@ -35,14 +63,14 @@ canvas.addEventListener("mousedown", (e) => {
 
     displayList.push(currentLine);
     currentLine.push({ x: cursor.x, y: cursor.y });
-    canvas.dispatchEvent(event);
+    canvas.dispatchEvent(drawingChanged);
 })
 canvas.addEventListener("mousemove", (e) => {
     if (cursor.active) {
         cursor.x = e.offsetX;
         cursor.y = e.offsetY;
         currentLine.push({ x: cursor.x, y: cursor.y });
-        canvas.dispatchEvent(event);
+        canvas.dispatchEvent(drawingChanged);
     }
 })
 canvas.addEventListener("mouseup", () => {
@@ -77,7 +105,7 @@ undoButton.addEventListener("click", () => {
         let undoLine = displayList.pop();
         if (undoLine) redoLines.push(undoLine);
     }
-    canvas.dispatchEvent(event);
+    canvas.dispatchEvent(drawingChanged);
 })
 app.append(undoButton);
 
@@ -88,6 +116,6 @@ redoButton.addEventListener("click", () => {
         let redoLine = redoLines.pop();
         if (redoLine) displayList.push(redoLine);
     }
-    canvas.dispatchEvent(event);
+    canvas.dispatchEvent(drawingChanged);
 })
 app.append(redoButton);
