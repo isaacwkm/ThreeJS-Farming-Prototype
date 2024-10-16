@@ -26,7 +26,11 @@ app.append(canvas);
 const ctx = canvas.getContext("2d");
 const cursor = { active: false, x: 0, y: 0 };
 
-const drawingChanged = new Event("drawing-changed");
+const bus = new EventTarget();
+
+function notify(name: string) {
+    bus.dispatchEvent(new Event(name));
+}
 
 class LineCommand implements DisplayCommand {
     public points : Point[];
@@ -61,20 +65,21 @@ canvas.addEventListener("mousedown", (e) => {
     redoCommands.splice(0, redoCommands.length);
     currentCommand = new LineCommand(cursor.x, cursor.y);
     commandList.push(currentCommand);
-    canvas.dispatchEvent(drawingChanged);
+    notify("drawing-changed");
 })
 canvas.addEventListener("mousemove", (e) => {
     if (cursor.active) {
         cursor.x = e.offsetX;
         cursor.y = e.offsetY;
         currentCommand.drag(cursor.x, cursor.y);
-        canvas.dispatchEvent(drawingChanged);
+        notify("drawing-changed");
     }
 })
 canvas.addEventListener("mouseup", () => {
     cursor.active = false;
 })
-canvas.addEventListener("drawing-changed", () => {
+
+bus.addEventListener("drawing-changed", () => {
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
 
     commandList.forEach((command) => { if (ctx) command.display(ctx) });
@@ -98,7 +103,7 @@ undoButton.addEventListener("click", () => {
         let undoLine = commandList.pop();
         if (undoLine) redoCommands.push(undoLine);
     }
-    canvas.dispatchEvent(drawingChanged);
+    notify("drawing-changed");
 })
 app.append(undoButton);
 
@@ -109,6 +114,6 @@ redoButton.addEventListener("click", () => {
         let redoLine = redoCommands.pop();
         if (redoLine) commandList.push(redoLine);
     }
-    canvas.dispatchEvent(drawingChanged);
+    notify("drawing-changed");
 })
 app.append(redoButton);
