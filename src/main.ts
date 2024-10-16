@@ -28,10 +28,6 @@ const cursor = { active: false, x: 0, y: 0 };
 
 const drawingChanged = new Event("drawing-changed");
 
-let currentLine : Point[] = [];
-const displayList : Point[][] = [];
-const redoLines : Point[][] = [];
-
 class LineCommand implements DisplayCommand {
     public points : Point[];
 
@@ -53,19 +49,18 @@ class LineCommand implements DisplayCommand {
     }
 }
 
-let currentCommand : LineCommand;
 const commandList : DisplayCommand[] = [];
+const redoCommands : DisplayCommand[] = [];
+let currentCommand : LineCommand;
 
 canvas.addEventListener("mousedown", (e) => {
     cursor.active = true;
     cursor.x = e.offsetX;
     cursor.y = e.offsetY;
 
+    redoCommands.splice(0, redoCommands.length);
     currentCommand = new LineCommand(cursor.x, cursor.y);
     commandList.push(currentCommand);
-
-    //displayList.push(currentLine);
-    //currentLine.push({ x: cursor.x, y: cursor.y });
     canvas.dispatchEvent(drawingChanged);
 })
 canvas.addEventListener("mousemove", (e) => {
@@ -73,24 +68,16 @@ canvas.addEventListener("mousemove", (e) => {
         cursor.x = e.offsetX;
         cursor.y = e.offsetY;
         currentCommand.drag(cursor.x, cursor.y);
-        //currentLine.push({ x: cursor.x, y: cursor.y });
         canvas.dispatchEvent(drawingChanged);
     }
 })
 canvas.addEventListener("mouseup", () => {
     cursor.active = false;
-    currentLine = [];
 })
 canvas.addEventListener("drawing-changed", () => {
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
 
     commandList.forEach((command) => { if (ctx) command.display(ctx) });
-    /*for (const line of displayList) {
-        ctx?.beginPath();
-        ctx?.moveTo(line[0].x, line[0].y);
-        for (const point of line) ctx?.lineTo(point.x, point.y);
-        ctx?.stroke();
-    }*/
 })
 
 app.append(document.createElement("div"));
@@ -100,30 +87,28 @@ clearButton.innerHTML = "Clear";
 clearButton.addEventListener("click", () => {
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
     commandList.splice(0, commandList.length);
-    //displayList.splice(0, displayList.length);
-    //redoLines.splice(0, redoLines.length);
+    redoCommands.splice(0, redoCommands.length);
 })
 app.append(clearButton);
 
 const undoButton = document.createElement("button");
 undoButton.innerHTML = "Undo";
 undoButton.addEventListener("click", () => {
-    if (commandList.length > 0) commandList.pop();
-    /*if (displayList.length > 0) {
-        let undoLine = displayList.pop();
-        if (undoLine) redoLines.push(undoLine);
-    }*/
+    if (commandList.length > 0) {
+        let undoLine = commandList.pop();
+        if (undoLine) redoCommands.push(undoLine);
+    }
     canvas.dispatchEvent(drawingChanged);
 })
 app.append(undoButton);
 
-/*const redoButton = document.createElement("button");
+const redoButton = document.createElement("button");
 redoButton.innerHTML = "Redo";
 redoButton.addEventListener("click", () => {
-    if (redoLines.length > 0) {
-        let redoLine = redoLines.pop();
-        if (redoLine) displayList.push(redoLine);
+    if (redoCommands.length > 0) {
+        let redoLine = redoCommands.pop();
+        if (redoLine) commandList.push(redoLine);
     }
     canvas.dispatchEvent(drawingChanged);
 })
-app.append(redoButton);*/
+app.append(redoButton);
