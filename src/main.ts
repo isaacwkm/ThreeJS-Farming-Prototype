@@ -85,7 +85,7 @@ bus.addEventListener("drawing-changed", () => {
     commandList.forEach((command) => { if (ctx) command.display(ctx) });
 })
 
-app.append(document.createElement("div"));
+app.append(document.createElement("br"));
 
 const clearButton = document.createElement("button");
 clearButton.innerHTML = "Clear";
@@ -117,3 +117,13 @@ redoButton.addEventListener("click", () => {
     notify("drawing-changed");
 })
 app.append(redoButton);
+
+app.append(document.createElement("br"));
+
+const thinTool = document.createElement("button");
+thinTool.innerHTML = "thin";
+app.append(thinTool);
+
+const thickTool = document.createElement("button");
+thickTool.innerHTML = "thick";
+app.append(thickTool);
