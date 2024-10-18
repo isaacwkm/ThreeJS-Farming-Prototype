@@ -25,6 +25,7 @@ app.append(canvas);
 
 const ctx = canvas.getContext("2d");
 const cursor = { active: false, x: 0, y: 0 };
+let thickness = 1;
 
 const bus = new EventTarget();
 
@@ -35,11 +36,12 @@ function notify(name: string) {
 class LineCommand implements DisplayCommand {
     public points : Point[];
 
-    constructor(public x: number, public y: number) {
+    constructor(public x: number, public y: number, public thickness: number) {
         this.points = [{ x, y }];
     }
 
     display(context: CanvasRenderingContext2D) {
+        context.lineWidth = this.thickness;
         context.beginPath();
         context.moveTo(this.points[0].x, this.points[0].y);
         for (const point of this.points) {
@@ -63,7 +65,7 @@ canvas.addEventListener("mousedown", (e) => {
     cursor.y = e.offsetY;
 
     redoCommands.splice(0, redoCommands.length);
-    currentCommand = new LineCommand(cursor.x, cursor.y);
+    currentCommand = new LineCommand(cursor.x, cursor.y, thickness);
     commandList.push(currentCommand);
     notify("drawing-changed");
 })
@@ -122,8 +124,10 @@ app.append(document.createElement("br"));
 
 const thinTool = document.createElement("button");
 thinTool.innerHTML = "thin";
+thinTool.addEventListener("click", () => { thickness = 1; })
 app.append(thinTool);
 
 const thickTool = document.createElement("button");
 thickTool.innerHTML = "thick";
+thickTool.addEventListener("click", () => { thickness = 3; })
 app.append(thickTool);
