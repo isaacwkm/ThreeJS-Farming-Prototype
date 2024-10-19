@@ -124,10 +124,20 @@ app.append(document.createElement("br"));
 
 const thinTool = document.createElement("button");
 thinTool.innerHTML = "thin";
-thinTool.addEventListener("click", () => { thickness = 1; })
+thinTool.addEventListener("click", () => {
+    thinTool.classList.toggle("toolActive");
+    if (thickTool.classList.contains("toolActive"))
+        thickTool.classList.toggle("toolActive");
+    thickness = 1;
+})
 app.append(thinTool);
 
 const thickTool = document.createElement("button");
 thickTool.innerHTML = "thick";
-thickTool.addEventListener("click", () => { thickness = 3; })
+thickTool.addEventListener("click", () => {
+    thickTool.classList.toggle("toolActive");
+    if (thinTool.classList.contains("toolActive"))
+        thinTool.classList.toggle("toolActive");
+    thickness = 3;
+})
 app.append(thickTool);
