@@ -2,10 +2,7 @@ import "./style.css";
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
-interface Point {
-    x: number,
-    y: number,
-}
+type Point = { x: number, y: number };
 
 interface DisplayCommand {
     display(context: CanvasRenderingContext2D): void;
@@ -33,9 +30,8 @@ function notify(name: string) {
     bus.dispatchEvent(new Event(name));
 }
 
-class LineCommand implements DisplayCommand {
+class LineCommand {
     public points : Point[];
-
     constructor(public x: number, public y: number, public thickness: number) {
         this.points = [{ x, y }];
     }
@@ -49,9 +45,17 @@ class LineCommand implements DisplayCommand {
         }
         context.stroke();
     }
+}
 
-    drag(x: number, y: number) {
-        this.points.push({ x, y });
+class ToolCommand {
+    public radius = 5;
+    constructor(public x: number, public y: number, public thickness: number) {}
+
+    draw(context: CanvasRenderingContext2D) {
+        context.lineWidth = this.thickness;
+        context.beginPath();
+        context.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+        context.stroke();
     }
 }
 
@@ -73,7 +77,7 @@ canvas.addEventListener("mousemove", (e) => {
     if (cursor.active) {
         cursor.x = e.offsetX;
         cursor.y = e.offsetY;
-        currentCommand.drag(cursor.x, cursor.y);
+        currentCommand.points.push({ x: cursor.x, y: cursor.y });
         notify("drawing-changed");
     }
 })
@@ -125,9 +129,9 @@ app.append(document.createElement("br"));
 const thinTool = document.createElement("button");
 thinTool.innerHTML = "thin";
 thinTool.addEventListener("click", () => {
-    thinTool.classList.toggle("toolActive");
+    thinTool.classList.add("toolActive");
     if (thickTool.classList.contains("toolActive"))
-        thickTool.classList.toggle("toolActive");
+        thickTool.classList.remove("toolActive");
     thickness = 1;
 })
 app.append(thinTool);
@@ -135,9 +139,9 @@ app.append(thinTool);
 const thickTool = document.createElement("button");
 thickTool.innerHTML = "thick";
 thickTool.addEventListener("click", () => {
-    thickTool.classList.toggle("toolActive");
+    thickTool.classList.add("toolActive");
     if (thinTool.classList.contains("toolActive"))
-        thinTool.classList.toggle("toolActive");
+        thinTool.classList.remove("toolActive");
     thickness = 3;
 })
 app.append(thickTool);
