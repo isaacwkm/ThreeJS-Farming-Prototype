@@ -62,6 +62,7 @@ class ToolCommand {
 const commandList : DisplayCommand[] = [];
 const redoCommands : DisplayCommand[] = [];
 let currentCommand : LineCommand;
+let cursorCommand : ToolCommand;
 
 canvas.addEventListener("mousedown", (e) => {
     cursor.active = true;
@@ -71,24 +72,34 @@ canvas.addEventListener("mousedown", (e) => {
     redoCommands.splice(0, redoCommands.length);
     currentCommand = new LineCommand(cursor.x, cursor.y, thickness);
     commandList.push(currentCommand);
+
     notify("drawing-changed");
 })
 canvas.addEventListener("mousemove", (e) => {
+    cursor.x = e.offsetX;
+    cursor.y = e.offsetY;
     if (cursor.active) {
-        cursor.x = e.offsetX;
-        cursor.y = e.offsetY;
         currentCommand.points.push({ x: cursor.x, y: cursor.y });
         notify("drawing-changed");
+    } else {
+        cursorCommand = new ToolCommand(cursor.x, cursor.y, thickness);
+        notify("tool-moved");
     }
 })
 canvas.addEventListener("mouseup", () => {
     cursor.active = false;
 })
+canvas.addEventListener("mouseout", () => { 
+    notify("drawing-changed");
+})
 
 bus.addEventListener("drawing-changed", () => {
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
-
     commandList.forEach((command) => { if (ctx) command.display(ctx) });
+})
+bus.addEventListener("tool-moved", () => {
+    notify("drawing-changed");
+    if (ctx) cursorCommand.draw(ctx);
 })
 
 app.append(document.createElement("br"));
