@@ -8,6 +8,10 @@ interface DisplayCommand {
     display(context: CanvasRenderingContext2D): void;
 }
 
+interface ToolCommand {
+    draw(context: CanvasRenderingContext2D): void;
+}
+
 const emojis = ["🙂", "😞", "😠"];
 
 const appName = "An Ordinary Sketchpad";
@@ -20,11 +24,14 @@ app.append(header);
 const canvas = document.createElement("canvas");
 canvas.setAttribute("height", "256px");
 canvas.setAttribute("width", "256px");
+canvas.style.cursor = "none";
 app.append(canvas);
 
 const ctx = canvas.getContext("2d");
 const cursor = { active: false, x: 0, y: 0 };
+let currentTool : "marker" | "sticker" = "marker";
 let thickness = 1;
+let cursorChar = "🙂";
 
 const bus = new EventTarget();
 
@@ -32,7 +39,7 @@ function notify(name: string) {
     bus.dispatchEvent(new Event(name));
 }
 
-class LineCommand {
+class LineCommand implements DisplayCommand {
     public points : Point[];
     constructor(public x: number, public y: number, public thickness: number) {
         this.points = [{ x, y }];
@@ -49,15 +56,31 @@ class LineCommand {
     }
 }
 
-class ToolCommand {
+class MarkerCommand implements ToolCommand {
     public radius: number = 5;
-    constructor(public x: number, public y: number, public thickness: number) {}
+    constructor(public x: number, public y: number) {}
 
     draw(context: CanvasRenderingContext2D) {
-        context.lineWidth = this.thickness;
+        context.lineWidth = thickness;
         context.beginPath();
         context.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
         context.stroke();
+    }
+}
+
+class StickerCommand implements ToolCommand {
+    constructor(public x: number, public y: number) {}
+
+    draw(context: CanvasRenderingContext2D) {
+        context.font = "24px monospace";
+        context.fillText(cursorChar, this.x - 16, this.y + 8);
+    }
+}
+
+function createToolCommand(x: number, y: number) : ToolCommand {
+    switch(currentTool) {
+        case "marker": return new MarkerCommand(x, y);
+        case "sticker": return new StickerCommand(x, y);
     }
 }
 
@@ -85,12 +108,14 @@ canvas.addEventListener("mousemove", (e) => {
         currentCommand.points.push({ x: cursor.x, y: cursor.y });
         notify("drawing-changed");
     } else {
-        cursorCommand = new ToolCommand(cursor.x, cursor.y, thickness);
+        cursorCommand = createToolCommand(cursor.x, cursor.y);
         notify("tool-moved");
     }
 })
 canvas.addEventListener("mouseup", () => {
     cursor.active = false;
+    cursorCommand = createToolCommand(cursor.x, cursor.y);
+    notify("tool-moved");
 })
 canvas.addEventListener("mouseout", () => {
     cursorCommand = null;
@@ -114,6 +139,8 @@ class StickerButton {
         this.button = document.createElement("button");
         this.button.innerHTML = `${this.name}`;
         this.button.addEventListener("click", () => {
+            currentTool = "sticker";
+            cursorChar = this.button.innerHTML;
             notify("tool-moved");
         });
         app.append(this.button);
@@ -167,6 +194,7 @@ thinTool.addEventListener("click", () => {
     if (thickTool.classList.contains("toolActive"))
         thickTool.classList.remove("toolActive");
     thickness = 1;
+    currentTool = "marker";
 })
 app.append(thinTool);
 
@@ -177,5 +205,6 @@ thickTool.addEventListener("click", () => {
     if (thinTool.classList.contains("toolActive"))
         thinTool.classList.remove("toolActive");
     thickness = 3;
+    currentTool = "marker";
 })
 app.append(thickTool);
