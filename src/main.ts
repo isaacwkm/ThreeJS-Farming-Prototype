@@ -8,6 +8,8 @@ interface DisplayCommand {
     display(context: CanvasRenderingContext2D): void;
 }
 
+const emojis = ["🙂", "😞", "😠"];
+
 const appName = "An Ordinary Sketchpad";
 document.title = appName;
 
@@ -48,7 +50,7 @@ class LineCommand {
 }
 
 class ToolCommand {
-    public radius = 5;
+    public radius: number = 5;
     constructor(public x: number, public y: number, public thickness: number) {}
 
     draw(context: CanvasRenderingContext2D) {
@@ -62,7 +64,7 @@ class ToolCommand {
 const commandList : DisplayCommand[] = [];
 const redoCommands : DisplayCommand[] = [];
 let currentCommand : LineCommand;
-let cursorCommand : ToolCommand;
+let cursorCommand : ToolCommand | null;
 
 canvas.addEventListener("mousedown", (e) => {
     cursor.active = true;
@@ -72,6 +74,7 @@ canvas.addEventListener("mousedown", (e) => {
     redoCommands.splice(0, redoCommands.length);
     currentCommand = new LineCommand(cursor.x, cursor.y, thickness);
     commandList.push(currentCommand);
+    cursorCommand = null;
 
     notify("drawing-changed");
 })
@@ -89,7 +92,8 @@ canvas.addEventListener("mousemove", (e) => {
 canvas.addEventListener("mouseup", () => {
     cursor.active = false;
 })
-canvas.addEventListener("mouseout", () => { 
+canvas.addEventListener("mouseout", () => {
+    cursorCommand = null;
     notify("drawing-changed");
 })
 
@@ -99,8 +103,27 @@ bus.addEventListener("drawing-changed", () => {
 })
 bus.addEventListener("tool-moved", () => {
     notify("drawing-changed");
-    if (ctx) cursorCommand.draw(ctx);
+    if (cursorCommand) { if (ctx) cursorCommand.draw(ctx); }
 })
+
+app.append(document.createElement("br"));
+
+class StickerButton {
+    button: HTMLButtonElement;
+    constructor(public name: string) {
+        this.button = document.createElement("button");
+        this.button.innerHTML = `${this.name}`;
+        this.button.addEventListener("click", () => {
+            notify("tool-moved");
+        });
+        app.append(this.button);
+    }
+}
+
+const stickers : StickerButton[] = [];
+for (const emoji of emojis) {
+    stickers.push(new StickerButton(emoji));
+}
 
 app.append(document.createElement("br"));
 
