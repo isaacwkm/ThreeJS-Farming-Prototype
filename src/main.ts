@@ -29,7 +29,7 @@ app.append(canvas);
 const ctx = canvas.getContext("2d");
 const cursor = { active: false, x: 0, y: 0 };
 
-let currentTool : "marker" | "sticker" = "marker";
+let currentTool: "marker" | "sticker" = "marker";
 let thickness = 1;
 let cursorChar = "🙂";
 
@@ -39,80 +39,76 @@ function notify(name: string) {
     bus.dispatchEvent(new Event(name));
 }
 
-class LineDisplay implements DisplayCommand {
-    public points : Point[];
-    constructor(public x: number, public y: number, public thickness: number) {
-        this.points = [{ x, y }];
-    }
+function createLine(x: number, y: number, width: number): DisplayCommand {
+    const points: Point[] = [{ x, y }];
 
-    display(context: CanvasRenderingContext2D) {
-        context.lineWidth = this.thickness;
-        context.beginPath();
-        context.moveTo(this.points[0].x, this.points[0].y);
-        for (const point of this.points) context.lineTo(point.x, point.y);
-        context.stroke();
-    }
-    drag(newX: number, newY: number) {
-        this.points.push({ x: newX, y: newY });
+    return {
+        display(context: CanvasRenderingContext2D) {
+            context.lineWidth = width;
+            context.beginPath();
+            context.moveTo(points[0].x, points[0].y);
+            for (const point of points) context.lineTo(point.x, point.y);
+            context.stroke();
+        },
+        drag(newX: number, newY: number) {
+            points.push({ x: newX, y: newY });
+        }
+    };
+}
+
+function createSticker(x: number, y: number, char: string): DisplayCommand {
+    let stickerPos: Point = { x, y };
+    let stickerChar = char;
+
+    return {
+        display(context: CanvasRenderingContext2D) {
+            context.font = "24px monospace";
+            context.fillText(stickerChar, stickerPos.x - 16, stickerPos.y + 8);
+        },
+        drag(newX: number, newY: number) {
+            stickerPos = { x: newX, y: newY };
+        }
+    };
+}
+
+function createDisplayCommand(x: number, y: number): DisplayCommand {
+    switch (currentTool) {
+        case "marker": return createLine(x, y, thickness);
+        case "sticker": return createSticker(x, y, cursorChar);
     }
 }
 
-class StickerDisplay implements DisplayCommand {
-    public pos : Point;
-    public stickerChar : string;
-    constructor(public x: number, public y: number, public char: string) {
-        this.pos = { x, y };
-        this.stickerChar = char;
-    }
-
-    display(context: CanvasRenderingContext2D) {
-        context.font = "24px monospace";
-        context.fillText(this.stickerChar, this.pos.x - 16, this.pos.y + 8);
-    }
-    drag(newX: number, newY: number) {
-        this.pos = { x: newX, y: newY };
+function createLinePreview(x: number, y: number): CursorCommand {
+    return {
+        draw(context: CanvasRenderingContext2D) {
+            context.lineWidth = thickness;
+            context.beginPath();
+            context.arc(x, y, 5, 0, Math.PI * 2, true);
+            context.stroke();
+        }
     }
 }
 
-function createDisplayCommand(x: number, y: number) : DisplayCommand {
-    switch(currentTool) {
-        case "marker": return new LineDisplay(x, y, thickness);
-        case "sticker": return new StickerDisplay(x, y, cursorChar);
+function createStickerPreview(x: number, y: number): CursorCommand {
+    return {
+        draw(context: CanvasRenderingContext2D) {
+            context.font = "24px monospace";
+            context.fillText(cursorChar, x - 16, y + 8);
+        }
+    };
+}
+
+function createCursorCommand(x: number, y: number): CursorCommand {
+    switch (currentTool) {
+        case "marker": return createLinePreview(x, y);
+        case "sticker": return createStickerPreview(x, y);
     }
 }
 
-class LinePreview implements CursorCommand {
-    public radius: number = 5;
-    constructor(public x: number, public y: number) {}
-
-    draw(context: CanvasRenderingContext2D) {
-        context.lineWidth = thickness;
-        context.beginPath();
-        context.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
-        context.stroke();
-    }
-}
-
-class StickerPreview implements CursorCommand {
-    constructor(public x: number, public y: number) {}
-
-    draw(context: CanvasRenderingContext2D) {
-        context.font = "24px monospace";
-        context.fillText(cursorChar, this.x - 16, this.y + 8);
-    }
-}
-
-function createCursorCommand(x: number, y: number) : CursorCommand {
-    switch(currentTool) {
-        case "marker": return new LinePreview(x, y);
-        case "sticker": return new StickerPreview(x, y);
-    }
-}
-
-const commandList : DisplayCommand[] = [];
-const redoCommands : DisplayCommand[] = [];
-let displayCommand : DisplayCommand;
-let cursorCommand : CursorCommand | null;
+const commandList: DisplayCommand[] = [];
+const redoCommands: DisplayCommand[] = [];
+let displayCommand: DisplayCommand;
+let cursorCommand: CursorCommand | null;
 
 canvas.addEventListener("mousedown", (e) => {
     cursor.active = true;
@@ -191,7 +187,7 @@ app.append(redoButton);
 
 app.append(document.createElement("br"));
 
-const tools : HTMLButtonElement[] = [];
+const tools: HTMLButtonElement[] = [];
 
 function styleButton(button: HTMLButtonElement): void {
     for (const tool of tools)
@@ -211,7 +207,7 @@ function createMarkerButton(name: string, width: number): HTMLButtonElement {
     return marker;
 }
 
-function createStickerButton(icon: string) : HTMLButtonElement {
+function createStickerButton(icon: string): HTMLButtonElement {
     const sticker = document.createElement("button");
     sticker.innerHTML = `${icon}`;
     sticker.addEventListener("click", () => {
