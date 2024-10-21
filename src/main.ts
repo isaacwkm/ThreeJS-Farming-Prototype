@@ -9,7 +9,7 @@ interface DisplayCommand {
     drag(x: number, y: number): void;
 }
 
-interface ToolCommand {
+interface CursorCommand {
     draw(context: CanvasRenderingContext2D): void;
 }
 
@@ -62,7 +62,6 @@ class LineCommand implements DisplayCommand {
 class StickerCommand implements DisplayCommand {
     public pos : Point;
     public stickerChar : string;
-
     constructor(public x: number, public y: number, public char: string) {
         this.pos = { x, y };
         this.stickerChar = char;
@@ -84,7 +83,7 @@ function createDisplayCommand(x: number, y: number) : DisplayCommand {
     }
 }
 
-class LinePreview implements ToolCommand {
+class LinePreview implements CursorCommand {
     public radius: number = 5;
     constructor(public x: number, public y: number) {}
 
@@ -96,7 +95,7 @@ class LinePreview implements ToolCommand {
     }
 }
 
-class StickerPreview implements ToolCommand {
+class StickerPreview implements CursorCommand {
     constructor(public x: number, public y: number) {}
 
     draw(context: CanvasRenderingContext2D) {
@@ -105,7 +104,7 @@ class StickerPreview implements ToolCommand {
     }
 }
 
-function createToolCommand(x: number, y: number) : ToolCommand {
+function createCursorCommand(x: number, y: number) : CursorCommand {
     switch(currentTool) {
         case "marker": return new LinePreview(x, y);
         case "sticker": return new StickerPreview(x, y);
@@ -114,8 +113,8 @@ function createToolCommand(x: number, y: number) : ToolCommand {
 
 const commandList : DisplayCommand[] = [];
 const redoCommands : DisplayCommand[] = [];
-let currentCommand : DisplayCommand;
-let cursorCommand : ToolCommand | null;
+let displayCommand : DisplayCommand;
+let cursorCommand : CursorCommand | null;
 
 canvas.addEventListener("mousedown", (e) => {
     cursor.active = true;
@@ -123,8 +122,8 @@ canvas.addEventListener("mousedown", (e) => {
     cursor.y = e.offsetY;
 
     redoCommands.splice(0, redoCommands.length);
-    currentCommand = createDisplayCommand(cursor.x, cursor.y);
-    commandList.push(currentCommand);
+    displayCommand = createDisplayCommand(cursor.x, cursor.y);
+    commandList.push(displayCommand);
     cursorCommand = null;
 
     notify("drawing-changed");
@@ -133,16 +132,16 @@ canvas.addEventListener("mousemove", (e) => {
     cursor.x = e.offsetX;
     cursor.y = e.offsetY;
     if (cursor.active) {
-        currentCommand.drag(cursor.x, cursor.y);
+        displayCommand.drag(cursor.x, cursor.y);
         notify("drawing-changed");
     } else {
-        cursorCommand = createToolCommand(cursor.x, cursor.y);
+        cursorCommand = createCursorCommand(cursor.x, cursor.y);
         notify("tool-moved");
     }
 })
 canvas.addEventListener("mouseup", () => {
     cursor.active = false;
-    cursorCommand = createToolCommand(cursor.x, cursor.y);
+    cursorCommand = createCursorCommand(cursor.x, cursor.y);
     notify("tool-moved");
 })
 canvas.addEventListener("mouseout", () => {
@@ -162,24 +161,41 @@ bus.addEventListener("tool-moved", () => {
 app.append(document.createElement("br"));
 
 const emojis = ["🙂", "😞", "😠"];
+const tools : HTMLButtonElement[] = [];
 
-class StickerButton {
-    button: HTMLButtonElement;
-    constructor(public name: string) {
-        this.button = document.createElement("button");
-        this.button.innerHTML = `${this.name}`;
-        this.button.addEventListener("click", () => {
-            currentTool = "sticker";
-            cursorChar = this.button.innerHTML;
-            notify("tool-moved");
-        });
-        app.append(this.button);
-    }
+function styleButton(button: HTMLButtonElement): void {
+    for (const tool of tools)
+        tool.classList.remove("toolActive");
+    button.classList.add("toolActive");
 }
 
-const stickers : StickerButton[] = [];
+function createStickerButton(icon: string) : HTMLButtonElement {
+    const sticker = document.createElement("button");
+    sticker.innerHTML = `${icon}`;
+    sticker.addEventListener("click", () => {
+        styleButton(sticker);
+        currentTool = "sticker";
+        cursorChar = sticker.innerHTML;
+        notify("tool-moved");
+    });
+    app.append(sticker);
+    return sticker;
+}
+
+function createMarkerButton(name: string, width: number): HTMLButtonElement {
+    const marker = document.createElement("button");
+    marker.innerHTML = `${name}`;
+    marker.addEventListener("click", () => {
+        styleButton(marker);
+        currentTool = "marker";
+        thickness = width;
+    })
+    app.append(marker);
+    return marker;
+}
+
 for (const emoji of emojis) {
-    stickers.push(new StickerButton(emoji));
+    tools.push(createStickerButton(emoji));
 }
 
 app.append(document.createElement("br"));
@@ -217,24 +233,5 @@ app.append(redoButton);
 
 app.append(document.createElement("br"));
 
-const thinTool = document.createElement("button");
-thinTool.innerHTML = "thin";
-thinTool.addEventListener("click", () => {
-    thinTool.classList.add("toolActive");
-    if (thickTool.classList.contains("toolActive"))
-        thickTool.classList.remove("toolActive");
-    thickness = 1;
-    currentTool = "marker";
-})
-app.append(thinTool);
-
-const thickTool = document.createElement("button");
-thickTool.innerHTML = "thick";
-thickTool.addEventListener("click", () => {
-    thickTool.classList.add("toolActive");
-    if (thinTool.classList.contains("toolActive"))
-        thinTool.classList.remove("toolActive");
-    thickness = 3;
-    currentTool = "marker";
-})
-app.append(thickTool);
+tools.push(createMarkerButton("thin", 1));
+tools.push(createMarkerButton("thick", 3));
