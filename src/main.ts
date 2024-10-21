@@ -6,6 +6,7 @@ type Point = { x: number, y: number };
 
 interface DisplayCommand {
     display(context: CanvasRenderingContext2D): void;
+    drag(x: number, y: number): void;
 }
 
 interface ToolCommand {
@@ -54,9 +55,36 @@ class LineCommand implements DisplayCommand {
         }
         context.stroke();
     }
+
+    drag(newX: number, newY: number) {
+        this.points.push({ x: newX, y: newY });
+    }
 }
 
-class MarkerCommand implements ToolCommand {
+class StickerCommand implements DisplayCommand {
+    public stickerPos : Point;
+    constructor(public x: number, public y: number) {
+        this.stickerPos = { x, y };
+    }
+
+    display(context: CanvasRenderingContext2D) {
+        context.font = "24px monospace";
+        context.fillText(cursorChar, this.x - 16, this.y + 8);
+    }
+
+    drag(newX: number, newY: number) {
+        this.stickerPos = { x: newX, y: newY };
+    }
+}
+
+function createDisplayCommand(x: number, y: number) : DisplayCommand {
+    switch(currentTool) {
+        case "marker": return new LineCommand(x, y, thickness);
+        case "sticker": return new StickerCommand(x, y);
+    }
+}
+
+class LinePreview implements ToolCommand {
     public radius: number = 5;
     constructor(public x: number, public y: number) {}
 
@@ -68,7 +96,7 @@ class MarkerCommand implements ToolCommand {
     }
 }
 
-class StickerCommand implements ToolCommand {
+class StickerPreview implements ToolCommand {
     constructor(public x: number, public y: number) {}
 
     draw(context: CanvasRenderingContext2D) {
@@ -79,14 +107,14 @@ class StickerCommand implements ToolCommand {
 
 function createToolCommand(x: number, y: number) : ToolCommand {
     switch(currentTool) {
-        case "marker": return new MarkerCommand(x, y);
-        case "sticker": return new StickerCommand(x, y);
+        case "marker": return new LinePreview(x, y);
+        case "sticker": return new StickerPreview(x, y);
     }
 }
 
 const commandList : DisplayCommand[] = [];
 const redoCommands : DisplayCommand[] = [];
-let currentCommand : LineCommand;
+let currentCommand : DisplayCommand;
 let cursorCommand : ToolCommand | null;
 
 canvas.addEventListener("mousedown", (e) => {
@@ -95,7 +123,7 @@ canvas.addEventListener("mousedown", (e) => {
     cursor.y = e.offsetY;
 
     redoCommands.splice(0, redoCommands.length);
-    currentCommand = new LineCommand(cursor.x, cursor.y, thickness);
+    currentCommand = createDisplayCommand(cursor.x, cursor.y);
     commandList.push(currentCommand);
     cursorCommand = null;
 
@@ -105,7 +133,7 @@ canvas.addEventListener("mousemove", (e) => {
     cursor.x = e.offsetX;
     cursor.y = e.offsetY;
     if (cursor.active) {
-        currentCommand.points.push({ x: cursor.x, y: cursor.y });
+        currentCommand.drag(cursor.x, cursor.y);
         notify("drawing-changed");
     } else {
         cursorCommand = createToolCommand(cursor.x, cursor.y);
