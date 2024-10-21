@@ -39,7 +39,7 @@ function notify(name: string) {
     bus.dispatchEvent(new Event(name));
 }
 
-class LineCommand implements DisplayCommand {
+class LineDisplay implements DisplayCommand {
     public points : Point[];
     constructor(public x: number, public y: number, public thickness: number) {
         this.points = [{ x, y }];
@@ -49,9 +49,7 @@ class LineCommand implements DisplayCommand {
         context.lineWidth = this.thickness;
         context.beginPath();
         context.moveTo(this.points[0].x, this.points[0].y);
-        for (const point of this.points) {
-            context.lineTo(point.x, point.y);
-        }
+        for (const point of this.points) context.lineTo(point.x, point.y);
         context.stroke();
     }
     drag(newX: number, newY: number) {
@@ -59,7 +57,7 @@ class LineCommand implements DisplayCommand {
     }
 }
 
-class StickerCommand implements DisplayCommand {
+class StickerDisplay implements DisplayCommand {
     public pos : Point;
     public stickerChar : string;
     constructor(public x: number, public y: number, public char: string) {
@@ -78,8 +76,8 @@ class StickerCommand implements DisplayCommand {
 
 function createDisplayCommand(x: number, y: number) : DisplayCommand {
     switch(currentTool) {
-        case "marker": return new LineCommand(x, y, thickness);
-        case "sticker": return new StickerCommand(x, y, cursorChar);
+        case "marker": return new LineDisplay(x, y, thickness);
+        case "sticker": return new StickerDisplay(x, y, cursorChar);
     }
 }
 
@@ -160,46 +158,6 @@ bus.addEventListener("tool-moved", () => {
 
 app.append(document.createElement("br"));
 
-const emojis = ["🙂", "😞", "😠"];
-const tools : HTMLButtonElement[] = [];
-
-function styleButton(button: HTMLButtonElement): void {
-    for (const tool of tools)
-        tool.classList.remove("toolActive");
-    button.classList.add("toolActive");
-}
-
-function createStickerButton(icon: string) : HTMLButtonElement {
-    const sticker = document.createElement("button");
-    sticker.innerHTML = `${icon}`;
-    sticker.addEventListener("click", () => {
-        styleButton(sticker);
-        currentTool = "sticker";
-        cursorChar = sticker.innerHTML;
-        notify("tool-moved");
-    });
-    app.append(sticker);
-    return sticker;
-}
-
-function createMarkerButton(name: string, width: number): HTMLButtonElement {
-    const marker = document.createElement("button");
-    marker.innerHTML = `${name}`;
-    marker.addEventListener("click", () => {
-        styleButton(marker);
-        currentTool = "marker";
-        thickness = width;
-    })
-    app.append(marker);
-    return marker;
-}
-
-for (const emoji of emojis) {
-    tools.push(createStickerButton(emoji));
-}
-
-app.append(document.createElement("br"));
-
 const clearButton = document.createElement("button");
 clearButton.innerHTML = "Clear";
 clearButton.addEventListener("click", () => {
@@ -233,5 +191,45 @@ app.append(redoButton);
 
 app.append(document.createElement("br"));
 
+const tools : HTMLButtonElement[] = [];
+
+function styleButton(button: HTMLButtonElement): void {
+    for (const tool of tools)
+        tool.classList.remove("toolActive");
+    button.classList.add("toolActive");
+}
+
+function createMarkerButton(name: string, width: number): HTMLButtonElement {
+    const marker = document.createElement("button");
+    marker.innerHTML = `${name}`;
+    marker.addEventListener("click", () => {
+        styleButton(marker);
+        currentTool = "marker";
+        thickness = width;
+    })
+    app.append(marker);
+    return marker;
+}
+
+function createStickerButton(icon: string) : HTMLButtonElement {
+    const sticker = document.createElement("button");
+    sticker.innerHTML = `${icon}`;
+    sticker.addEventListener("click", () => {
+        styleButton(sticker);
+        currentTool = "sticker";
+        cursorChar = sticker.innerHTML;
+        notify("tool-moved");
+    });
+    app.append(sticker);
+    return sticker;
+}
+
 tools.push(createMarkerButton("thin", 1));
 tools.push(createMarkerButton("thick", 3));
+
+app.append(document.createElement("br"));
+
+const emojis = ["🙂", "😞", "😠"];
+for (const emoji of emojis) {
+    tools.push(createStickerButton(emoji));
+}
