@@ -229,6 +229,14 @@ tools.push(createMarkerButton("thick", 3));
 
 app.append(document.createElement("br"));
 
+const addCustom = document.createElement("button");
+addCustom.innerHTML = "Custom";
+addCustom.addEventListener("click", () => {
+    const text = prompt("Custom sticker text", "😐");
+    if (text) tools.push(createStickerButton(text));
+})
+app.append(addCustom);
+
 const emojis = ["🙂", "😞", "😠"];
 for (const emoji of emojis) {
     tools.push(createStickerButton(emoji));
