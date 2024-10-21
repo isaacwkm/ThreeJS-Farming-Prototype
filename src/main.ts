@@ -13,8 +13,6 @@ interface ToolCommand {
     draw(context: CanvasRenderingContext2D): void;
 }
 
-const emojis = ["🙂", "😞", "😠"];
-
 const appName = "An Ordinary Sketchpad";
 document.title = appName;
 
@@ -30,6 +28,7 @@ app.append(canvas);
 
 const ctx = canvas.getContext("2d");
 const cursor = { active: false, x: 0, y: 0 };
+
 let currentTool : "marker" | "sticker" = "marker";
 let thickness = 1;
 let cursorChar = "🙂";
@@ -55,32 +54,33 @@ class LineCommand implements DisplayCommand {
         }
         context.stroke();
     }
-
     drag(newX: number, newY: number) {
         this.points.push({ x: newX, y: newY });
     }
 }
 
 class StickerCommand implements DisplayCommand {
-    public stickerPos : Point;
-    constructor(public x: number, public y: number) {
-        this.stickerPos = { x, y };
+    public pos : Point;
+    public stickerChar : string;
+
+    constructor(public x: number, public y: number, public char: string) {
+        this.pos = { x, y };
+        this.stickerChar = char;
     }
 
     display(context: CanvasRenderingContext2D) {
         context.font = "24px monospace";
-        context.fillText(cursorChar, this.x - 16, this.y + 8);
+        context.fillText(this.stickerChar, this.pos.x - 16, this.pos.y + 8);
     }
-
     drag(newX: number, newY: number) {
-        this.stickerPos = { x: newX, y: newY };
+        this.pos = { x: newX, y: newY };
     }
 }
 
 function createDisplayCommand(x: number, y: number) : DisplayCommand {
     switch(currentTool) {
         case "marker": return new LineCommand(x, y, thickness);
-        case "sticker": return new StickerCommand(x, y);
+        case "sticker": return new StickerCommand(x, y, cursorChar);
     }
 }
 
@@ -160,6 +160,8 @@ bus.addEventListener("tool-moved", () => {
 })
 
 app.append(document.createElement("br"));
+
+const emojis = ["🙂", "😞", "😠"];
 
 class StickerButton {
     button: HTMLButtonElement;
