@@ -40,9 +40,11 @@ function notify(name: string) {
 
 function createLine(x: number, y: number, width: number): DisplayCommand {
     const points: Point[] = [{ x, y }];
+    let color = parseColor(parseInt(slider.value));
 
     return {
         display(context: CanvasRenderingContext2D) {
+            context.strokeStyle = color;
             context.lineWidth = width;
             context.beginPath();
             context.moveTo(points[0].x, points[0].y);
@@ -78,8 +80,11 @@ function createDisplayCommand(x: number, y: number): DisplayCommand {
 }
 
 function createLinePreview(x: number, y: number): CursorCommand {
+    let color = parseColor(parseInt(slider.value));
+
     return {
         draw(context: CanvasRenderingContext2D) {
+            context.strokeStyle = color;
             context.lineWidth = thickness;
             context.beginPath();
             context.arc(x, y, 5, 0, Math.PI * 2, true);
@@ -244,15 +249,17 @@ for (const emoji of emojis) {
     tools.push(createStickerButton(emoji));
 }
 
-app.append(document.createElement("br"));
+function parseColor(sliderValue: number) : string {
+    return `hsl(${sliderValue}, 100%, 50%)`;
+}
 
 const sliderLabel = document.createElement("label");
-sliderLabel.innerHTML = "Color";
+sliderLabel.innerHTML = "<b>Color</b>";
 app.append(sliderLabel);
 
 const slider = document.createElement("input");
 slider.type = "range";
-
+slider.max = "360";
 app.append(slider);
 
 function exportImage() {
