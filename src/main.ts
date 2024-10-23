@@ -21,8 +21,7 @@ header.innerHTML = appName;
 app.append(header);
 
 const canvas = document.createElement("canvas");
-canvas.setAttribute("height", "256px");
-canvas.setAttribute("width", "256px");
+canvas.height = canvas.width = 256;
 canvas.style.cursor = "none";
 app.append(canvas);
 
@@ -53,7 +52,7 @@ function createLine(x: number, y: number, width: number): DisplayCommand {
         drag(newX: number, newY: number) {
             points.push({ x: newX, y: newY });
         }
-    };
+    }
 }
 
 function createSticker(x: number, y: number, char: string): DisplayCommand {
@@ -68,7 +67,7 @@ function createSticker(x: number, y: number, char: string): DisplayCommand {
         drag(newX: number, newY: number) {
             stickerPos = { x: newX, y: newY };
         }
-    };
+    }
 }
 
 function createDisplayCommand(x: number, y: number): DisplayCommand {
@@ -95,7 +94,7 @@ function createStickerPreview(x: number, y: number): CursorCommand {
             context.font = "24px monospace";
             context.fillText(cursorChar, x - 16, y + 8);
         }
-    };
+    }
 }
 
 function createCursorCommand(x: number, y: number): CursorCommand {
@@ -125,6 +124,7 @@ canvas.addEventListener("mousedown", (e) => {
 canvas.addEventListener("mousemove", (e) => {
     cursor.x = e.offsetX;
     cursor.y = e.offsetY;
+
     if (cursor.active) {
         displayCommand.drag(cursor.x, cursor.y);
         notify("drawing-changed");
@@ -144,7 +144,7 @@ canvas.addEventListener("mouseout", () => {
 })
 
 bus.addEventListener("drawing-changed", () => {
-    ctx?.clearRect(0, 0, canvas.width, canvas.height);
+    if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
     commandList.forEach((command) => { if (ctx) command.display(ctx) });
 })
 bus.addEventListener("tool-moved", () => {
@@ -157,7 +157,7 @@ app.append(document.createElement("br"));
 const clearButton = document.createElement("button");
 clearButton.innerHTML = "Clear";
 clearButton.addEventListener("click", () => {
-    ctx?.clearRect(0, 0, canvas.width, canvas.height);
+    if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
     commandList.splice(0, commandList.length);
     redoCommands.splice(0, redoCommands.length);
 })
@@ -185,7 +185,8 @@ redoButton.addEventListener("click", () => {
 })
 app.append(redoButton);
 
-app.append(document.createElement("br"));
+const toolDiv = document.createElement("div");
+app.append(toolDiv);
 
 const tools: HTMLButtonElement[] = [];
 
@@ -203,7 +204,7 @@ function createMarkerButton(name: string, width: number): HTMLButtonElement {
         currentTool = "marker";
         thickness = width;
     })
-    app.append(marker);
+    toolDiv.append(marker);
     return marker;
 }
 
@@ -213,17 +214,17 @@ function createStickerButton(icon: string): HTMLButtonElement {
     sticker.addEventListener("click", () => {
         styleButton(sticker);
         currentTool = "sticker";
-        cursorChar = sticker.innerHTML;
+        cursorChar = icon;
         notify("tool-moved");
-    });
-    app.append(sticker);
+    })
+    toolDiv.append(sticker);
     return sticker;
 }
 
 tools.push(createMarkerButton("thin", 1));
 tools.push(createMarkerButton("thick", 3));
 
-app.append(document.createElement("br"));
+toolDiv.append(document.createElement("br"));
 
 const addCustom = document.createElement("button");
 addCustom.innerHTML = "Custom";
@@ -231,9 +232,25 @@ addCustom.addEventListener("click", () => {
     const text = prompt("Custom sticker text", "😐");
     if (text) tools.push(createStickerButton(text));
 })
-app.append(addCustom);
+toolDiv.append(addCustom);
 
 const emojis = ["🙂", "😞", "😠"];
 for (const emoji of emojis) {
     tools.push(createStickerButton(emoji));
 }
+
+const exportButton = document.createElement("button");
+exportButton.innerHTML = "Export";
+exportButton.addEventListener("click", () => {
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.height = tempCanvas.width = 1024;
+    const tempCtx = tempCanvas.getContext("2d");
+    if (tempCtx) tempCtx.scale(4, 4);
+    commandList.forEach((command) => { if (tempCtx) command.display(tempCtx); });
+
+    const anchor = document.createElement("a");
+    anchor.href = tempCanvas.toDataURL("image/png");
+    anchor.download = "sketchpad.png";
+    anchor.click();
+})
+app.append(exportButton);
