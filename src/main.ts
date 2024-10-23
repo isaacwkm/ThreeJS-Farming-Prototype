@@ -244,6 +244,17 @@ for (const emoji of emojis) {
     tools.push(createStickerButton(emoji));
 }
 
+app.append(document.createElement("br"));
+
+const sliderLabel = document.createElement("label");
+sliderLabel.innerHTML = "Color";
+app.append(sliderLabel);
+
+const slider = document.createElement("input");
+slider.type = "range";
+
+app.append(slider);
+
 function exportImage() {
     const tempCanvas = document.createElement("canvas");
     tempCanvas.height = tempCanvas.width = 1024;
@@ -257,3 +268,4 @@ function exportImage() {
     anchor.click();
 }
 app.append(createButton("Export", exportImage));
+
