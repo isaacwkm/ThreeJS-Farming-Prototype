@@ -29,7 +29,7 @@ const ctx = canvas.getContext("2d");
 const cursor = { active: false, x: 0, y: 0 };
 
 let currentTool: "marker" | "sticker" = "marker";
-let thickness = 1;
+let thickness = 2;
 let cursorChar = "🙂";
 
 const bus = new EventTarget();
@@ -87,7 +87,7 @@ function createLinePreview(x: number, y: number): CursorCommand {
             context.strokeStyle = color;
             context.lineWidth = thickness;
             context.beginPath();
-            context.arc(x, y, 5, 0, Math.PI * 2, true);
+            context.arc(x, y, 6, 0, Math.PI * 2, true);
             context.stroke();
         }
     }
@@ -233,10 +233,18 @@ function createStickerButton(icon: string): HTMLButtonElement {
     return sticker;
 }
 
-tools.push(createMarkerButton("thin", 1));
-tools.push(createMarkerButton("thick", 3));
+const markerLabel = document.createElement("label");
+markerLabel.innerHTML = "<b>Marker </b>";
+toolDiv.append(markerLabel);
+
+tools.push(createMarkerButton("thin", 2));
+tools.push(createMarkerButton("thick", 4));
 
 toolDiv.append(document.createElement("br"));
+
+const stickerLabel = document.createElement("label");
+stickerLabel.innerHTML = "<b>Sticker </b>";
+toolDiv.append(stickerLabel);
 
 function addCustomFn() {
     const text = prompt("Custom sticker text", "😐");
@@ -249,13 +257,13 @@ for (const emoji of emojis) {
     tools.push(createStickerButton(emoji));
 }
 
+const sliderLabel = document.createElement("label");
+sliderLabel.innerHTML = "<b>Color </b>";
+app.append(sliderLabel);
+
 function parseColor(sliderValue: number) : string {
     return `hsl(${sliderValue}, 100%, 50%)`;
 }
-
-const sliderLabel = document.createElement("label");
-sliderLabel.innerHTML = "<b>Color</b>";
-app.append(sliderLabel);
 
 const slider = document.createElement("input");
 slider.type = "range";
@@ -275,4 +283,3 @@ function exportImage() {
     anchor.click();
 }
 app.append(createButton("Export", exportImage));
-
