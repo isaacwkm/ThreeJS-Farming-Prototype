@@ -34,7 +34,8 @@ let cursorChar = "🙂";
 
 const bus = new EventTarget();
 
-function notify(name: string) {
+type EventName = "drawing-changed" | "tool-moved";
+function notify(name: EventName) {
     bus.dispatchEvent(new Event(name));
 }
 
@@ -159,9 +160,7 @@ bus.addEventListener("tool-moved", () => {
 
 app.append(document.createElement("br"));
 
-type ButtonCallback = () => void;
-
-function createButton(name: string, callback: ButtonCallback) {
+function createButton(name: string, callback: () => void) {
     const button = document.createElement("button");
     button.innerHTML = name;
     button.addEventListener("click", () => callback());
