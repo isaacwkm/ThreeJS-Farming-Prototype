@@ -204,23 +204,14 @@ function styleButton(button: HTMLButtonElement): void {
     button.classList.add("toolActive");
 }
 
-function handleMarkerClick(button: HTMLButtonElement, width: number) {
-    styleButton(button);
-    currentTool = "marker";
-    thickness = width;
-}
-
-function handleStickerClick(button: HTMLButtonElement, icon: string) {
-    styleButton(button);
-    currentTool = "sticker";
-    cursorChar = icon;
-    notify("tool-moved");
-}
-
 function createMarkerButton(name: string, width: number): HTMLButtonElement {
     const marker = document.createElement("button");
     marker.innerHTML = `${name}`;
-    marker.addEventListener("click", () => handleMarkerClick(marker, width));
+    marker.addEventListener("click", () => {
+        styleButton(marker);
+        currentTool = "marker";
+        thickness = width;
+    });
     toolDiv.append(marker);
     return marker;
 }
@@ -228,38 +219,42 @@ function createMarkerButton(name: string, width: number): HTMLButtonElement {
 function createStickerButton(icon: string): HTMLButtonElement {
     const sticker = document.createElement("button");
     sticker.innerHTML = `${icon}`;
-    sticker.addEventListener("click", () => handleStickerClick(sticker, icon));
+    sticker.addEventListener("click", () => {
+        styleButton(sticker);
+        currentTool = "sticker";
+        cursorChar = icon;
+    });
     toolDiv.append(sticker);
     return sticker;
 }
 
-const markerLabel = document.createElement("label");
-markerLabel.innerHTML = "<b>Marker </b>";
-toolDiv.append(markerLabel);
+function makeLabel(name: string, appDiv: HTMLDivElement) {
+    const label = document.createElement("label");
+    label.innerHTML = `<b>${name} </b>`;
+    appDiv.append(label);
+}
+
+makeLabel("Marker", toolDiv);
 
 tools.push(createMarkerButton("thin", 2));
 tools.push(createMarkerButton("thick", 4));
 
 toolDiv.append(document.createElement("br"));
 
-const stickerLabel = document.createElement("label");
-stickerLabel.innerHTML = "<b>Sticker </b>";
-toolDiv.append(stickerLabel);
+makeLabel("Sticker", toolDiv);
 
-function addCustomFn() {
+function addCustom() {
     const text = prompt("Custom sticker text", "😐");
     if (text) tools.push(createStickerButton(text));
 }
-toolDiv.append(createButton("Custom", addCustomFn));
+toolDiv.append(createButton("Custom", addCustom));
 
 const emojis = ["🙂", "😞", "😠"];
 for (const emoji of emojis) {
     tools.push(createStickerButton(emoji));
 }
 
-const sliderLabel = document.createElement("label");
-sliderLabel.innerHTML = "<b>Color </b>";
-app.append(sliderLabel);
+makeLabel("Color", app);
 
 function parseColor(sliderValue: number) : string {
     return `hsl(${sliderValue}, 100%, 50%)`;
@@ -267,7 +262,7 @@ function parseColor(sliderValue: number) : string {
 
 const slider = document.createElement("input");
 slider.type = "range";
-slider.max = "360";
+slider.max = "300";
 app.append(slider);
 
 function exportImage() {
