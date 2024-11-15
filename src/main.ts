@@ -145,13 +145,9 @@ canvas.addEventListener("mouseup", () => {
     notify("tool-moved");
 })
 canvas.addEventListener("mouseout", () => {
+    cursor.active = false;
     cursorCommand = null;
     notify("drawing-changed");
-})
-canvas.addEventListener("mouseleave", () => {
-    cursor.active = false;
-    cursorCommand = createCursorCommand(cursor.x, cursor.y);
-    notify("tool-moved");
 })
 
 bus.addEventListener("drawing-changed", () => {
