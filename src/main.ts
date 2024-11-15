@@ -41,7 +41,7 @@ function notify(name: EventName) {
 
 function createLine(x: number, y: number, width: number): DisplayCommand {
     const points: Point[] = [{ x, y }];
-    let color = parseColor(parseInt(slider.value));
+    const color = parseColor(parseInt(slider.value));
 
     return {
         display(context: CanvasRenderingContext2D) {
@@ -60,7 +60,7 @@ function createLine(x: number, y: number, width: number): DisplayCommand {
 
 function createSticker(x: number, y: number, char: string): DisplayCommand {
     let stickerPos: Point = { x, y };
-    let stickerChar = char;
+    const stickerChar = char;
 
     return {
         display(context: CanvasRenderingContext2D) {
@@ -81,7 +81,7 @@ function createDisplayCommand(x: number, y: number): DisplayCommand {
 }
 
 function createLinePreview(x: number, y: number): CursorCommand {
-    let color = parseColor(parseInt(slider.value));
+    const color = parseColor(parseInt(slider.value));
 
     return {
         draw(context: CanvasRenderingContext2D) {
@@ -148,6 +148,11 @@ canvas.addEventListener("mouseout", () => {
     cursorCommand = null;
     notify("drawing-changed");
 })
+canvas.addEventListener("mouseleave", () => {
+    cursor.active = false;
+    cursorCommand = createCursorCommand(cursor.x, cursor.y);
+    notify("tool-moved");
+})
 
 bus.addEventListener("drawing-changed", () => {
     if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -176,7 +181,7 @@ app.append(createButton("Clear", clearCanvas));
 
 function undo() {
     if (commandList.length > 0) {
-        let undoLine = commandList.pop();
+        const undoLine = commandList.pop();
         if (undoLine) redoCommands.push(undoLine);
     }
     notify("drawing-changed");
@@ -185,7 +190,7 @@ app.append(createButton("Undo", undo));
 
 function redo() {
     if (redoCommands.length > 0) {
-        let redoLine = redoCommands.pop();
+        const redoLine = redoCommands.pop();
         if (redoLine) commandList.push(redoLine);
     }
     notify("drawing-changed");
