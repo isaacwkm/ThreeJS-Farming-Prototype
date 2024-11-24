@@ -1,13 +1,28 @@
 # Devlog Entry - 11/27/2024
 tiny
 
+# Devlog Entry - 11/24/2024
+
+Redoing project in Typescript with HTML. Alternate platform is now TypeScript with Three.js. Our intended implementation with Unity proved to be too complex for the move to Godot. Morale has taken a hit but we'll forge onward.
+
+## F0.a and F1.a
+
+Grid is now represented as an ArrayBuffer of cells, which satisfies the AoS format. Each cell holds information on its relative position within the grid, as well as sun and water levels specific to that cell which are randomized on initialization. Functions are provided that enable access to cells based on column and row. Player is now a simple object that keeps track of its position in a similar format to the grid cells. Player movement is triggered through event listeners on the arrow keys which map to coordinate pairs that are added to the player's position. This position is bounded based on the size of the grid itself.
+
+## F0.d
+
+As mentioned in F0.a, each grid cell has a sun and water level specific to it. A randomize function is implemented that assigns new values to each level. Sun levels are assigned values within a certain range as before whereas water is randomly incremented or decremented.
+
+## F1.d - Partial
+
+
 # Devlog Entry - 11/22/2024
 
 ## How we satisfied the requirements
 
 ## F0.a
 
-F0.a was Implemented using a GridManager class that instantiated a 2D array of Tiles. This corresponds to the Array of Structures format. Player movement is based on discrete units determined by Tile size, while their global position is restricted by the overall size of the grid. Tile-specific data can be accessed through the GetTileAt function. Movement was implemented by checking for keyboard presses binded for movement which are the WASD keys. Pressing a key for the desired direction sends out a target exactly one tile away in the direction the player wishes to move in. If the target returns a valid coordinate within the grid system, the player moves smoothly to the target tile.
+F0.a was Implemented using a GridManager class that instantiated a 2D array of Tiles. Player movement is based on discrete units determined by Tile size, while their global position is restricted by the overall size of the grid. Tile-specific data can be accessed through the GetTileAt function. Movement was implemented by checking for keyboard presses binded for movement which are the WASD keys. Pressing a key for the desired direction sends out a target exactly one tile away in the direction the player wishes to move in. If the target returns a valid coordinate within the grid system, the player moves smoothly to the target tile.
 
 ## F0.b
 

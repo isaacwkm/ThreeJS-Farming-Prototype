@@ -1,5 +1,5 @@
 export class Grid {
-    private readonly GRID_WIDTH = 5;
+    public readonly GRID_WIDTH = 6;
 
     private readonly colOffset = 0;
     private readonly rowOffset = 4;
@@ -61,5 +61,28 @@ export class Grid {
                 this.gridView.setInt32(cellOffset + this.waterOffset, water);
             }
         }
+    }
+}
+
+export class Player {
+    constructor(public x: number, public y: number, private upperBound: number) {}
+
+    move(dx: number, dy: number) {
+        this.x += dx;
+        this.y += dy;
+    }
+
+    boundsCheck(dx: number, dy: number) {
+        const x = this.x + dx;
+        const y = this.y + dy;
+        if (x < 0 || this.upperBound <= x)
+            return false;
+        if (y < 0 || this.upperBound <= y)
+            return false;
+        return true;
+    }
+
+    getPosition() {
+        return { x: this.x, y: this.y };
     }
 }
