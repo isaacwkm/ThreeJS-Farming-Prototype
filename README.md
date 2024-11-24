@@ -15,6 +15,7 @@ As mentioned in F0.a, each grid cell has a sun and water level specific to it. A
 
 ## F1.d - Partial
 
+Player movement is currently wrapped in a command pattern that allows for separate undo and redo functionality. The command pattern is managed through a top-level function that handles input from the player.
 
 # Devlog Entry - 11/22/2024
 
