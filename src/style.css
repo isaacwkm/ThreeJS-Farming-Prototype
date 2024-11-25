@@ -5,7 +5,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: pink;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -27,6 +27,12 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+}
+#three-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: pink;
 }
 
 h1 {

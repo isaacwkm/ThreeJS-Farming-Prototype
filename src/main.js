@@ -3,6 +3,73 @@ import * as THREE from 'three';
 import { Grid } from "./models.ts";
 import { Player } from "./models.ts";
 
+//Renderer
+const canvas = document.querySelector('#three-canvas');
+const renderer = new THREE.WebGLRenderer({
+    //canvas: 
+    canvas,
+    antialias: true,
+});
+renderer.setPixelRatio(globalThis.devicePixelRatio);
+renderer.setSize(globalThis.innerWidth, globalThis.innerHeight);
+renderer.shadowMap.enabled = true;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('white');
+
+const camera = new THREE.PerspectiveCamera(
+    60,         //fov
+    globalThis.innerWidth / globalThis.innerHeight, //aspect
+    0.1,    //near
+    1000,      //far
+);
+camera.position.set(-3, 3, 7);
+scene.add(camera);
+
+const ambientLight = new THREE.AmbientLight('white', 3);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight('white', 3);
+directionalLight.position.set(-3, 5, 1);
+directionalLight.castShadow = true;
+scene.add(directionalLight);
+
+const box = new THREE.Mesh(
+    new THREE.BoxGeometry(2, 2, 2),
+    //new THREE.MeshBasicMaterial( {color: 0xFF6347})
+    new THREE.MeshLambertMaterial({color: 'firebrick'})
+);
+box.position.y = 1;
+box.castShadow = true;
+
+const groundMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(10, 10),
+    //new THREE.MeshBasicMaterial( {color: 0x092e66})
+    new THREE.MeshLambertMaterial({color: 0x092e66})
+);
+
+groundMesh.rotation.x = THREE.MathUtils.degToRad(-90);
+//groundMesh.rotation.x = -Math.PI / 2;
+groundMesh.receiveShadow = true;
+scene.add(box, groundMesh);
+
+camera.lookAt(box.position);
+
+renderer.render(scene, camera);
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    box.rotation.x += 0.01;
+    box.rotation.y += 0.005;
+    box.rotation.z += 0.01;
+
+    renderer.render(scene, camera);
+}
+
+animate();
+
+/*
 interface Command {
     execute(): void;
     undo(): void;
@@ -107,3 +174,4 @@ redoButton.addEventListener("click", Redo)
 document.body.appendChild(redoButton);
 
 notify("scene-changed");
+*/
