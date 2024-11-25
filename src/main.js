@@ -70,38 +70,71 @@ function animate() {
 animate();
 
 /*
+import { Grid } from "./models.ts";
+import { Player } from "./models.ts";
+
 interface Command {
     execute(): void;
     undo(): void;
 }
 
+interface Save {
+    playerPos: { x: number, y: number };
+    gridState: string;
+    timestamp: string;
+}
+
+localStorage.clear();
+
 const grid = new Grid();
+const playerCharacter = new Player(0, 0, grid.GRID_WIDTH);
 
-const undoStack : Command[] = [];
-const redoStack : Command[] = [];
+const undoStack: Command[] = [];
+const redoStack: Command[] = [];
 
-function createMoveCommand(player: Player, dx: number, dy: number) : Command {
-    const data = {before_dx: 0, before_dy: 0};
-    return {
-        execute() {
-            if (player.boundsCheck(dx, dy)) {
+function createMoveCommand(player: Player, dx: number, dy: number) : Command | null {
+    const data = { before_dx: 0, before_dy: 0 };
+    if (player.boundsCheck(dx, dy)) {
+        return {
+            execute() {
                 player.move(dx, dy)
                 data.before_dx = -dx;
                 data.before_dy = -dy;
+            },
+            undo() {
+                player.move(data.before_dx, data.before_dy);
+            }
+        }
+    }
+    return null;
+}
+
+function createTurnCommand(grid: Grid) : Command {
+    const data = { before_grid: grid.serialize(), after_grid: "" }
+    return {
+        execute() {
+            if (!data.after_grid) {
+                grid.randomize();
+                data.after_grid = grid.serialize();
+            } else {
+                grid.deserialize(data.after_grid);
             }
         },
         undo() {
-            player.move(data.before_dx, data.before_dy);
+            grid.deserialize(data.before_grid);
         }
     }
 }
 
 function handleInput(key: string) {
+    redoStack.splice(0, redoStack.length);
+    
     const inputMap: Record<string, Command> = {
-        "ArrowUp": createMoveCommand(playerCharacter, 0, -1),
-        "ArrowDown": createMoveCommand(playerCharacter, 0, 1),
-        "ArrowLeft": createMoveCommand(playerCharacter, -1, 0),
-        "ArrowRight": createMoveCommand(playerCharacter, 1, 0),
+        "ArrowLeft": createMoveCommand(playerCharacter, -1, 0)!,
+        "ArrowRight": createMoveCommand(playerCharacter, 1, 0)!,
+        "ArrowUp": createMoveCommand(playerCharacter, 0, -1)!,
+        "ArrowDown": createMoveCommand(playerCharacter, 0, 1)!,
+        "Enter": createTurnCommand(grid),
     };
 
     const command = inputMap[key];
@@ -130,12 +163,40 @@ function Redo() {
     }
 }
 
+function createSave(key: string) {
+    const saveFile: Save = {
+        playerPos: { x: playerCharacter.x, y: playerCharacter.y },
+        gridState: grid.serialize(),
+        timestamp: new Date().toISOString(),
+    };
+
+    const saveData = JSON.stringify(saveFile);
+    localStorage.setItem(key, saveData);
+    console.log(`Game saved under ${key}:`, saveFile);
+}
+
+function loadSave(key: string) {
+    const saveData = localStorage.getItem(key);
+    if (!saveData) {
+        console.error(`No save file found under ${key}`);
+        return;
+    }
+    const saveFile: Save = JSON.parse(saveData);
+
+    undoStack.splice(0, undoStack.length);
+    redoStack.splice(0, redoStack.length);
+
+    playerCharacter.x = saveFile.playerPos.x;
+    playerCharacter.y = saveFile.playerPos.y;
+    grid.deserialize(saveFile.gridState);
+    notify("scene-changed");
+    console.log(`Game loaded from save ${key}`);
+}
+
 type EventName = "scene-changed";
 function notify(name: EventName) {
     canvas.dispatchEvent(new Event(name));
 }
-
-const playerCharacter = new Player(0, 0, grid.GRID_WIDTH);
 
 window.addEventListener("keydown", (e) => {
     handleInput(e.key);
@@ -159,8 +220,6 @@ function drawPlayer(player: Player) {
 
 canvas.addEventListener("scene-changed", () => {
     drawPlayer(playerCharacter);
-    const playerPos = playerCharacter.getPosition();
-    console.log(grid.readCell(playerPos.x, playerPos.y))
 })
 
 const undoButton = document.createElement("button");
@@ -172,6 +231,22 @@ const redoButton = document.createElement("button");
 redoButton.innerHTML = "Redo";
 redoButton.addEventListener("click", Redo)
 document.body.appendChild(redoButton);
+
+const saveButton = document.createElement("button");
+saveButton.innerHTML = "Save";
+saveButton.addEventListener("click", () => {
+    const key = prompt("Enter save name")!;
+    createSave(key);
+})
+document.body.appendChild(saveButton);
+
+const loadButton = document.createElement("button");
+loadButton.innerHTML = "Load";
+loadButton.addEventListener("click", () => {
+    const key = prompt("Enter save name")!;
+    loadSave(key);
+})
+document.body.appendChild(loadButton);
 
 notify("scene-changed");
 */
