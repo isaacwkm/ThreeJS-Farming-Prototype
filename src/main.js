@@ -14,9 +14,11 @@ renderer.setPixelRatio(globalThis.devicePixelRatio);
 renderer.setSize(globalThis.innerWidth, globalThis.innerHeight);
 renderer.shadowMap.enabled = true;
 
+//Scene
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('white');
 
+//Camera
 const camera = new THREE.PerspectiveCamera(
     60,         //fov
     globalThis.innerWidth / globalThis.innerHeight, //aspect
@@ -26,14 +28,19 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(-3, 3, 7);
 scene.add(camera);
 
+//Lighting
+
+//Ambient Lighting
 const ambientLight = new THREE.AmbientLight('white', 3);
 scene.add(ambientLight);
 
+//Directional Lighting
 const directionalLight = new THREE.DirectionalLight('white', 3);
 directionalLight.position.set(-3, 5, 1);
 directionalLight.castShadow = true;
 scene.add(directionalLight);
 
+//Box
 const box = new THREE.Mesh(
     new THREE.BoxGeometry(2, 2, 2),
     //new THREE.MeshBasicMaterial( {color: 0xFF6347})
@@ -42,6 +49,7 @@ const box = new THREE.Mesh(
 box.position.y = 1;
 box.castShadow = true;
 
+//Ground
 const groundMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(10, 10),
     //new THREE.MeshBasicMaterial( {color: 0x092e66})
@@ -53,10 +61,13 @@ groundMesh.rotation.x = THREE.MathUtils.degToRad(-90);
 groundMesh.receiveShadow = true;
 scene.add(box, groundMesh);
 
+//Camera Looking
 camera.lookAt(box.position);
 
+//Render Screen
 renderer.render(scene, camera);
 
+//Animate
 function animate() {
     requestAnimationFrame(animate);
 
