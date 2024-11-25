@@ -1,5 +1,7 @@
-import { Grid } from "./models";
-import { Player } from "./models";
+import * as THREE from 'three';
+
+import { Grid } from "./models.ts";
+import { Player } from "./models.ts";
 
 interface Command {
     execute(): void;
