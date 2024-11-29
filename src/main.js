@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 
-import { Grid } from "./models.ts";
-import { Player } from "./models.ts";
+import { Grid } from "./models.js";
+import { Player } from "./models.js";
+import { Plant } from './models.js';
 
 //Renderer
 const canvas = document.querySelector('#three-canvas');
@@ -80,9 +81,6 @@ function animate() {
 
 animate();
 
-import { Grid } from "./models.ts";
-import { Player } from "./models.ts";
-import { Plant } from "./models.ts";
 
 /*
 interface Command {
