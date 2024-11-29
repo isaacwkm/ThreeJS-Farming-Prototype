@@ -1,7 +1,7 @@
 export class Grid {
     constructor() {
         this.GRID_WIDTH = 6;
-        
+
         this.colOffset = 0;
         this.rowOffset = 4;
         this.sunOffset = 8;
@@ -20,36 +20,45 @@ export class Grid {
             }
         }
     }
+
     getCellOffset(i, j) {
         const index = j * this.GRID_WIDTH + i;
         const cellOffset = index * this.cellSize;
         return cellOffset;
     }
+
     initCell(i, j, sun, water) {
         const cellOffset = this.getCellOffset(i, j);
+
         this.gridView.setInt32(cellOffset + this.colOffset, i);
         this.gridView.setInt32(cellOffset + this.rowOffset, j);
         this.gridView.setInt32(cellOffset + this.sunOffset, sun);
         this.gridView.setInt32(cellOffset + this.waterOffset, water);
         this.gridView.setInt8(cellOffset + this.sowOffset, 0);
     }
+
     readCell(col, row) {
         const cellOffset = this.getCellOffset(col, row);
+
         const i = this.gridView.getInt32(cellOffset + this.colOffset);
         const j = this.gridView.getInt32(cellOffset + this.rowOffset);
         const sun = this.gridView.getInt32(cellOffset + this.sunOffset);
         const water = this.gridView.getInt32(cellOffset + this.waterOffset);
         const sowed = this.gridView.getInt32(cellOffset + this.sowOffset);
+        
         return { i, j, sun, water, sowed };
     }
+
     getSunAt(col, row) {
         const cellOffset = this.getCellOffset(col, row);
         return this.gridView.getInt32(cellOffset + this.sunOffset);
     }
+
     getWaterAt(col, row) {
         const cellOffset = this.getCellOffset(col, row);
         return this.gridView.getInt32(cellOffset + this.waterOffset);
     }
+
     sowCell(col, row) {
         const cellOffset = this.getCellOffset(col, row);
         const sowBool = this.gridView.getInt32(cellOffset + this.sowOffset);
@@ -58,12 +67,14 @@ export class Grid {
         else
             this.gridView.setInt32(cellOffset + this.sowOffset, 0);
     }
+
     randomize() {
         for (let col = 0; col < this.GRID_WIDTH; col++) {
             for (let row = 0; row < this.GRID_WIDTH; row++) {
                 const cellOffset = this.getCellOffset(col, row);
                 const sun = Math.floor(Math.random() * 10);
                 this.gridView.setInt32(cellOffset + this.sunOffset, sun);
+
                 const waterVars = [-1, 0, 1, 2];
                 const waterDelta = waterVars[Math.floor(Math.random() * waterVars.length)];
                 let water = this.gridView.getInt32(cellOffset + this.waterOffset) + waterDelta;
@@ -72,10 +83,12 @@ export class Grid {
             }
         }
     }
+
     serialize() {
         const gridData = new Uint8Array(this.grid);
         return btoa(String.fromCharCode(...gridData));
     }
+
     deserialize(serializedGrid) {
         const binaryGrid = atob(serializedGrid);
         const gridData = new Uint8Array(binaryGrid.length);
@@ -93,10 +106,12 @@ export class Player {
         this.xMax = xMax;
         this.yMax = yMax;
     }
+
     move(dx, dy) {
         this.x += dx;
         this.y += dy;
     }
+
     boundsCheck(dx, dy) {
         const x = this.x + dx;
         const y = this.y + dy;
@@ -106,20 +121,21 @@ export class Player {
             return false;
         return true;
     }
+
     isAdjacent(gridX, gridY) {
         const adjColumn = this.x - 1 <= gridX && gridX <= this.x + 1;
         const adjRow = this.y - 1 <= gridY && gridY <= this.y + 1;
         if (adjColumn && adjRow)
             return true;
+        return false;
     }
+
     getPosition() {
         return { x: this.x, y: this.y };
     }
 }
 export class Plant {
-    constructor(type, // Example: "flower", "tree", etc.
-    x, y, growthStage = 0, // Tracks how grown a plant is
-    minSun = 1, minWater = 1) {
+    constructor(type, x, y, growthStage = 0, minSun = 1, minWater = 1) {
         this.type = type;
         this.x = x;
         this.y = y;
@@ -128,8 +144,10 @@ export class Plant {
         this.minWater = minWater;
         this.familyNeighbors = 0; // Keeps track of same plants in neighboring cells
     }
+
     grow(sun, water, plantMap) { }
-    checkSunAndWater(sun, water) {
+
+    _checkSunAndWater(sun, water) {
         // Check if the passed values meet minimum conditions
         if (sun < this.minSun) {
             // needs more sun
@@ -141,7 +159,8 @@ export class Plant {
         }
         return true; // Meets conditions
     }
-    checkNeighborsForBoost(x, y, plantMap) {
+
+    _checkNeighborsForBoost(x, y, plantMap) {
         this.familyNeighbors = 0;
         for (let dx = -1; dx <= 1; dx++) {
             for (let dy = -1; dy <= 1; dy++) {
@@ -157,6 +176,7 @@ export class Plant {
             }
         }
     }
+
     static switchPlant(type, x, y, growthStage) {
         switch (type) {
             case "🫘": return new BeanPlant(x, y, growthStage);
@@ -164,31 +184,36 @@ export class Plant {
             default: throw new Error("Plant unrecognized");
         }
     }
+
     static deepCopy(plant) {
         const plantCopy = this.switchPlant(plant.type, plant.x, plant.y, plant.growthStage);
         return plantCopy;
     }
 }
+
 export class BeanPlant extends Plant {
     constructor(x, y, growthStage = 0) {
         super("🫘", x, y, growthStage, 3, 2); // Beans need minimum 3 sun, 2 water
     }
+
     // grow method: Beans grow faster with neighbors
     grow(sun, water, plantMap) {
-        this.checkNeighborsForBoost(this.x, this.y, plantMap); // this.familyNeighbors is ready to use
-        const canGrow = this.checkSunAndWater(sun, water) && this.growthStage < 3;
+        this._checkNeighborsForBoost(this.x, this.y, plantMap); // this.familyNeighbors is ready to use
+        const canGrow = this._checkSunAndWater(sun, water) && this.growthStage < 3;
         if (canGrow && this.familyNeighbors >= 2) {
             this.growthStage++;
         }
     }
 }
+
 export class CornPlant extends Plant {
     constructor(x, y, growthStage = 0) {
         super("🌽", x, y, growthStage, 1, 2);
     }
+
     grow(sun, water) {
         // Logic for plant growth
-        const canGrow = this.checkSunAndWater(sun, water) && this.growthStage < 3;
+        const canGrow = this._checkSunAndWater(sun, water) && this.growthStage < 3;
         if (canGrow) {
             this.growthStage++;
         }
