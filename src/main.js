@@ -63,7 +63,7 @@ function createTurnCommand(grid) {
 }
 
 function createSowCommand(x, y) {
-    const data = { plant: Plant.switchPlant(currentPlantType, x, y, 0) };
+    const data = { plant: new Plant(currentPlantType, x, y, 0) };
     return {
         execute() {
             plants.set(`${x}${y}`, data.plant);
@@ -171,7 +171,7 @@ function copyDataFromFile(saveFile) {
     grid.deserialize(saveFile.gridState);
     plants.clear();
     saveFile.plantMap.forEach((plant) => {
-        plants.set(plant[0], Plant.deepCopy(plant[1]));
+        plants.set(plant[0], Plant.plantCopy(plant[1]));
     });
 }
 
@@ -218,6 +218,128 @@ window.addEventListener("keydown", (e) => {
     handleKeyboardInput(e.key);
 });
 
+const canvas = document.createElement("canvas");
+canvas.height = canvas.width = 400;
+document.body.appendChild(canvas);
+
+const ctx = canvas.getContext("2d");
+const tileWidth = canvas.width / grid.GRID_WIDTH;
+
+canvas.addEventListener("click", (e) => {
+    const mouseX = e.offsetX;
+    const mouseY = e.offsetY;
+
+    const gridX = Math.floor(mouseX / tileWidth);
+    const gridY = Math.floor(mouseY / tileWidth);
+
+    farmTheLand(gridX, gridY);
+})
+
+function drawGrid() {
+    ctx.fillStyle = "green";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "black";
+    for (let x = 0; x <= grid.GRID_WIDTH; x++) {
+        ctx.beginPath();
+        ctx.moveTo(x * tileWidth, 0);
+        ctx.lineTo(x * tileWidth, canvas.height);
+        ctx.stroke();
+    }
+    for (let y = 0; y <= grid.GRID_WIDTH; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, y * tileWidth);
+        ctx.lineTo(canvas.width, y * tileWidth);
+        ctx.stroke();
+    }
+}
+
+function drawPlayer(player) {
+    const basePositionX = tileWidth * player.x;
+    const basePositionY = tileWidth * player.y;
+    const centerOffset = tileWidth / 2 - 10;
+
+    ctx.fillStyle = "black";
+    ctx.fillRect(basePositionX + centerOffset, basePositionY + centerOffset, 20, 20);
+}
+
+function drawPlants() {
+    for (const [key, plant] of plants) {
+        const basePositionX = tileWidth * plant.x;
+        const basePositionY = tileWidth * plant.y;
+        const centerOffset = tileWidth / 4;
+        const fontList = [
+            "24px monospace",
+            "28px monospace",
+            "32px monospace",
+            "36px monospace"
+        ]
+        ctx.font = fontList[plant.growthStage];
+        ctx.fillText(plant.type, basePositionX + centerOffset, basePositionY + 2.5 * centerOffset);
+    }
+}
+
+canvas.addEventListener("scene-changed", () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawGrid();
+    drawPlayer(playerCharacter);
+    drawPlants();
+    createSave("autosave");
+
+    const winnerNode = document.getElementById("winner");
+    if (winnerNode)
+        winnerNode.remove();
+    if (checkScenarioWin())
+        document.body.appendChild(winText);
+})
+
+const undoButton = document.createElement("button");
+undoButton.innerHTML = "Undo";
+undoButton.addEventListener("click", Undo);
+document.body.appendChild(undoButton);
+
+const redoButton = document.createElement("button");
+redoButton.innerHTML = "Redo";
+redoButton.addEventListener("click", Redo)
+document.body.appendChild(redoButton);
+
+const saveButton = document.createElement("button");
+saveButton.innerHTML = "Save";
+saveButton.addEventListener("click", () => {
+    const key = prompt("Enter save name");
+    createSave(key);
+})
+document.body.appendChild(saveButton);
+
+const loadButton = document.createElement("button");
+loadButton.innerHTML = "Load";
+loadButton.addEventListener("click", () => {
+    listSaves();
+    const key = prompt("Enter save name");
+    loadSave(key);
+})
+document.body.appendChild(loadButton);
+
+function createPlantButton(icon) {
+    const plantButton = document.createElement("button");
+    plantButton.innerHTML = `${icon}`;
+    plantButton.addEventListener("click", () => {
+        currentPlantType = icon;
+        console.log(currentPlantType);
+    })
+    return plantButton;
+}
+
+const winText = document.createElement("h1");
+winText.innerHTML = "You win!"
+winText.id = "winner";
+
+document.body.appendChild(createPlantButton("🌽"));
+document.body.appendChild(createPlantButton("🫘"));
+
+autosavePrompt();
+notify("scene-changed");
+
+/*
 //Renderer
 const canvas = document.querySelector('#three-canvas');
 const renderer = new THREE.WebGLRenderer({
@@ -294,3 +416,4 @@ function animate() {
 }
 
 animate();
+*/
