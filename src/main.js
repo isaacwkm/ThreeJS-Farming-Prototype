@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 import { Grid } from "./models.js";
 import { Player } from "./models.js";
-import { Plant } from './models.js';
+import { Plant, allPlantTypes } from './models.js';
 
 const grid = new Grid();
 const playerCharacter = new Player(0, 0, grid.GRID_WIDTH, grid.GRID_WIDTH);
@@ -12,7 +12,7 @@ const redoStack = [];
 
 const plants = new Map();
 
-let currentPlantType = "🌽";
+let currentPlantType = "corn";
 let currentDay = 0;
 let reapFull = 0;
 
@@ -274,7 +274,8 @@ function drawPlants() {
             "36px monospace"
         ]
         ctx.font = fontList[plant.growthStage];
-        ctx.fillText(plant.type, basePositionX + centerOffset, basePositionY + 2.5 * centerOffset);
+        console.log()
+        ctx.fillText(plant.getIcon(), basePositionX + centerOffset, basePositionY + 2.5 * centerOffset);
     }
 }
 
@@ -333,8 +334,9 @@ const winText = document.createElement("h1");
 winText.innerHTML = "You win!"
 winText.id = "winner";
 
-document.body.appendChild(createPlantButton("🌽"));
-document.body.appendChild(createPlantButton("🫘"));
+for (let key of allPlantTypes) {
+    document.body.appendChild(createPlantButton(key.fullName));
+}
 
 autosavePrompt();
 notify("scene-changed");

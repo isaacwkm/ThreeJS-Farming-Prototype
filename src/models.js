@@ -1,3 +1,5 @@
+import { allPlantDefinitions } from "./plants";
+
 export class Grid {
     constructor() {
         this.GRID_WIDTH = 6;
@@ -136,35 +138,50 @@ export class Player {
     }
 }
 
-const PlantTypes = {
-    "🫘": {
-        minSun: 3,
-        minWater: 2,
-        canGrow: function(sun, water, neighbors) {
-            const sameNeighbors = neighbors
-                .filter(plant => plant.type === "🫘");
-            const isHappy = sameNeighbors.length >= 2;
-            return isHappy && sun > this.minSun && water > this.minWater;
-        },
-    },
-    "🌽": {
-        minSun: 1,
-        minWater: 2,
-        canGrow: function(sun, water) {
-            return sun > this.minSun && water > this.minWater;
-        }
-    },
+class internalPlant {
+    constructor() {
+        this.fullName = "plant";
+        this.symbol = "🌱";
+        this.nextLevel = (ctx) => ctx.plant.level;
+    }
 }
+
+function internalPlantCompiler (program) {
+    const internalPlantType = new internalPlant();
+    const dsl = {
+        name(name) {
+            internalPlantType.fullName = name;
+        },
+        icon(icon) {
+            internalPlantType.symbol = icon;
+        },
+        grow(grow) {
+            internalPlantType.nextLevel = (ctx) => {
+                return ctx.plant.growthStage + (grow(ctx) ? 1 : 0);
+            }
+        },
+    };
+    program(dsl);
+    return internalPlantType;
+}
+
+export const allPlantTypes = allPlantDefinitions.map(internalPlantCompiler);
 
 export class Plant {
     constructor(type, x, y, growthStage = 0) {
+        const plantType = allPlantTypes.find(plantType => plantType.fullName == type);
+        if (!plantType)
+            throw new Error("Plant unrecognized");
+
         this.type = type;
         this.x = x;
         this.y = y;
         this.growthStage = growthStage;
-        this.plantRules = PlantTypes[this.type];
-        if (!this.plantRules)
-            throw new Error("Plant unrecognized");
+        this.plantType = plantType;
+    }
+
+    getIcon() {
+        return this.plantType.symbol;
     }
 
     getNeighbors(x, y, plantMap) {
@@ -184,99 +201,18 @@ export class Plant {
     }
 
     grow(sun, water, plantMap) {
-        const neighbors = this.getNeighbors(this.x, this.y, plantMap);
-
-        if (this.plantRules.canGrow(sun, water, neighbors) && this.growthStage < 3)
-            this.growthStage++;
+        const plantNeighbors = this.getNeighbors(this.x, this.y, plantMap);
+        const growthContext = {
+            plant: this,
+            sun,
+            water,
+            neighbors: plantNeighbors
+        }
+        const newLevel = this.plantType.nextLevel(growthContext);
+        this.growthStage = Math.min(newLevel, 3);
     }
 
     static plantCopy(plant) {
         return new Plant(plant.type, plant.x, plant.y, plant.growthStage);
     }
 }
-
-// export class Plant {
-//     constructor(type, x, y, growthStage = 0, minSun = 1, minWater = 1) {
-//         this.type = type;
-//         this.x = x;
-//         this.y = y;
-//         this.growthStage = growthStage;
-//         this.minSun = minSun;
-//         this.minWater = minWater;
-//         this.familyNeighbors = 0; // Keeps track of same plants in neighboring cells
-//     }
-
-//     grow(sun, water, plantMap) { }
-
-//     _checkSunAndWater(sun, water) {
-//         // Check if the passed values meet minimum conditions
-//         if (sun < this.minSun) {
-//             // needs more sun
-//             return false;
-//         }
-//         if (water < this.minWater) {
-//             // needs more water
-//             return false;
-//         }
-//         return true; // Meets conditions
-//     }
-
-//     _checkNeighborsForBoost(x, y, plantMap) {
-//         this.familyNeighbors = 0;
-//         for (let dx = -1; dx <= 1; dx++) {
-//             for (let dy = -1; dy <= 1; dy++) {
-//                 if (dx === 0 && dy === 0)
-//                     continue; // Skip self
-//                 const neighborX = x + dx;
-//                 const neighborY = y + dy;
-//                 const neighborKey = neighborX.toString() + neighborY.toString();
-//                 const neighborPlant = plantMap.get(neighborKey);
-//                 if (neighborPlant && (neighborPlant.type === this.type)) {
-//                     this.familyNeighbors++;
-//                 }
-//             }
-//         }
-//     }
-
-//     static switchPlant(type, x, y, growthStage) {
-//         switch (type) {
-//             case "🫘": return new BeanPlant(x, y, growthStage);
-//             case "🌽": return new CornPlant(x, y, growthStage);
-//             default: throw new Error("Plant unrecognized");
-//         }
-//     }
-
-//     static deepCopy(plant) {
-//         const plantCopy = this.switchPlant(plant.type, plant.x, plant.y, plant.growthStage);
-//         return plantCopy;
-//     }
-// }
-
-// export class BeanPlant extends Plant {
-//     constructor(x, y, growthStage = 0) {
-//         super("🫘", x, y, growthStage, 3, 2); // Beans need minimum 3 sun, 2 water
-//     }
-
-//     // grow method: Beans grow faster with neighbors
-//     grow(sun, water, plantMap) {
-//         this._checkNeighborsForBoost(this.x, this.y, plantMap); // this.familyNeighbors is ready to use
-//         const canGrow = this._checkSunAndWater(sun, water) && this.growthStage < 3;
-//         if (canGrow && this.familyNeighbors >= 2) {
-//             this.growthStage++;
-//         }
-//     }
-// }
-
-// export class CornPlant extends Plant {
-//     constructor(x, y, growthStage = 0) {
-//         super("🌽", x, y, growthStage, 1, 2);
-//     }
-
-//     grow(sun, water) {
-//         // Logic for plant growth
-//         const canGrow = this._checkSunAndWater(sun, water) && this.growthStage < 3;
-//         if (canGrow) {
-//             this.growthStage++;
-//         }
-//     }
-// }
