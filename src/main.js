@@ -1,11 +1,13 @@
-import * as THREE from 'three';
-import YAML from 'js-yaml';
+import * as THREE from "three";
+import YAML from "js-yaml";
+import { OrbitControls } from "https://deno.land/x/threejs_4_deno@v120/examples/jsm/controls/OrbitControls.js";
 
 import { Grid } from "./models.js";
 import { Player } from "./models.js";
-import { Plant } from './models.js';
-import { yamlString } from './scenarios.js';
+import { Plant, allPlantTypes } from "./models.js";
+import { yamlString } from "./scenarios.js";
 
+// Game Initialization
 let width;
 let height;
 const availablePlants = [];
@@ -36,92 +38,148 @@ let currentPlantType = "corn";
 let currentDay = 0;
 let reapFull = 0;
 
+// THREE.js Setup
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb); // Sky blue
+
+const camera = new THREE.PerspectiveCamera(
+  50, // FOV
+  window.innerWidth / window.innerHeight,
+  0.1, // Near clipping
+  1000 // Far clipping
+);
+camera.position.set(width / 2, 10, width + 5);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(width / 2, 0, width / 2);
+controls.update();
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+directionalLight.position.set(5, 10, 5);
+scene.add(directionalLight);
+
+// Grid Rendering
+const gridGroup = createGrid(grid.GRID_WIDTH);
+scene.add(gridGroup);
+
+// Player Rendering
+const playerMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
+const playerGeometry = new THREE.BoxGeometry(0.9, 0.9, 0.9);
+const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
+updatePlayerPosition();
+scene.add(playerMesh);
+
+// Plant Rendering
+const plantMeshes = new Map();
+
+// Game Functions (Updated to work with THREE.js)
 function createMoveCommand(player, dx, dy) {
     const data = { before_dx: 0, before_dy: 0 };
     if (player.boundsCheck(dx, dy)) {
-        return {
-            execute() {
-                player.move(dx, dy);
-                data.before_dx = -dx;
-                data.before_dy = -dy;
-            },
-            undo() {
-                player.move(data.before_dx, data.before_dy);
-            }
-        };
+      return {
+        execute() {
+          player.move(dx, dy);
+          data.before_dx = -dx;
+          data.before_dy = -dy;
+          updatePlayerPosition();
+        },
+        undo() {
+          player.move(data.before_dx, data.before_dy);
+          updatePlayerPosition();
+        }
+      };
     }
     return null;
-}
+  }
 
 function createTurnCommand(grid) {
     const data = {
-        before_grid: grid.serialize(),
-        after_grid: "",
-        growthMap: new Map()
+      before_grid: grid.serialize(),
+      after_grid: "",
+      growthMap: new Map()
     };
     return {
-        execute() {
-            if (!data.after_grid) {
-                grid.randomize();
-                data.after_grid = grid.serialize();
-            }
-            else {
-                grid.deserialize(data.after_grid);
-            }
-            for (const [key, plant] of plantsOnGrid) {
-                data.growthMap.set(key, plant.growthStage);
-                plant.grow(grid.getSunAt(plant.x, plant.y), grid.getWaterAt(plant.x, plant.y), plantsOnGrid);
-            }
-        },
-        undo() {
-            grid.deserialize(data.before_grid);
-            for (const [key, plant] of plantsOnGrid) {
-                plant.growthStage = data.growthMap.get(key);
-            }
+      execute() {
+        if (!data.after_grid) {
+          grid.randomize();
+          data.after_grid = grid.serialize();
+        } else {
+          grid.deserialize(data.after_grid);
         }
+        for (const [key, plant] of plantsOnGrid) {
+          data.growthMap.set(key, plant.growthStage);
+          plant.grow(grid.getSunAt(plant.x, plant.y), grid.getWaterAt(plant.x, plant.y), plantsOnGrid);
+          updatePlantMesh(plant);
+        }
+      },
+      undo() {
+        grid.deserialize(data.before_grid);
+        for (const [key, plant] of plantsOnGrid) {
+          plant.growthStage = data.growthMap.get(key);
+          updatePlantMesh(plant);
+        }
+      },
     };
 }
 
 function createSowCommand(x, y) {
     const data = { plant: new Plant(currentPlantType, x, y, 0) };
     return {
-        execute() {
-            plantsOnGrid.set(`${x}${y}`, data.plant);
-            grid.sowCell(x, y);
+    execute() {
+        plantsOnGrid.set(`${x}${y}`, data.plant);
+        grid.sowCell(x, y);
+        createPlantMesh(data.plant);
         },
-        undo() {
-            plantsOnGrid.delete(`${x}${y}`);
-            grid.sowCell(x, y);
-        }
-    };
+    undo() {
+        plantsOnGrid.delete(`${x}${y}`);
+        grid.sowCell(x, y);
+        removePlantMesh(x, y);
+    },
+};
 }
 
 function createReapCommand(x, y) {
-    const data = { plant: plantsOnGrid.get(`${x}${y}`) };
-    return {
-        execute() {
-            plantsOnGrid.delete(`${x}${y}`);
-            if (data.plant.growthStage == 3)
-                reapFull++;
-            grid.sowCell(x, y);
+const data = { plant: plantsOnGrid.get(`${x}${y}`) };
+return {
+    execute() {
+        plantsOnGrid.delete(`${x}${y}`);
+        grid.sowCell(x, y);
+        removePlantMesh(x, y);
+        advanceScenario(data.plant);
         },
-        undo() {
-            plantsOnGrid.set(`${x}${y}`, data.plant);
-            if (data.plant.growthStage == 3)
-                reapFull--;
-            grid.sowCell(x, y);
-        }
-    };
+    undo() {
+        plantsOnGrid.set(`${x}${y}`, data.plant);
+        grid.sowCell(x, y);
+        createPlantMesh(data.plant);
+        revertScenario(data.plant);
+    },
+};
+}
+
+function advanceScenario(plant) {
+if (plant.growthStage === 3) reapFull++;
+}
+
+function revertScenario(plant) {
+if (plant.growthStage === 3) reapFull--;
 }
 
 function handleKeyboardInput(key) {
     redoStack.splice(0, redoStack.length);
     const inputMap = {
-        "ArrowLeft": createMoveCommand(playerCharacter, -1, 0),
-        "ArrowRight": createMoveCommand(playerCharacter, 1, 0),
-        "ArrowUp": createMoveCommand(playerCharacter, 0, -1),
-        "ArrowDown": createMoveCommand(playerCharacter, 0, 1),
-        "Enter": createTurnCommand(grid),
+      ArrowLeft: createMoveCommand(playerCharacter, -1, 0),
+      ArrowRight: createMoveCommand(playerCharacter, 1, 0),
+      ArrowUp: createMoveCommand(playerCharacter, 0, -1),
+      ArrowDown: createMoveCommand(playerCharacter, 0, 1),
+      Enter: createTurnCommand(grid),
     };
     const command = inputMap[key];
     manageCommand(command);
@@ -130,105 +188,225 @@ function handleKeyboardInput(key) {
 function farmTheLand(x, y) {
     redoStack.splice(0, redoStack.length);
     if (playerCharacter.isAdjacent(x, y)) {
-        if (!grid.readCell(x, y).sowed)
-            manageCommand(createSowCommand(x, y));
-        else
-            manageCommand(createReapCommand(x, y));
+      if (!grid.readCell(x, y).sowed) manageCommand(createSowCommand(x, y));
+      else manageCommand(createReapCommand(x, y));
     }
 }
 
 function manageCommand(command) {
-    if (command) {
-        undoStack.push(command);
-        command.execute();
-        notify("scene-changed");
-    }
+  if (command) {
+    undoStack.push(command);
+    command.execute();
+    checkWinCondition();
+  }
 }
 
 function Undo() {
-    if (undoStack.length > 0) {
-        const command = undoStack.pop();
-        command.undo();
-        redoStack.push(command);
-        notify("scene-changed");
-    }
+  if (undoStack.length > 0) {
+    const command = undoStack.pop();
+    command.undo();
+    redoStack.push(command);
+    checkWinCondition();
+  }
 }
 
 function Redo() {
-    if (redoStack.length > 0) {
-        const command = redoStack.pop();
-        command.execute();
-        undoStack.push(command);
-        notify("scene-changed");
-    }
+  if (redoStack.length > 0) {
+    const command = redoStack.pop();
+    command.execute();
+    undoStack.push(command);
+    checkWinCondition();
+  }
 }
 
 function createSave(key) {
     const saveFile = {
-        playerPos: { x: playerCharacter.x, y: playerCharacter.y },
-        gridState: grid.serialize(),
-        plantMap: Array.from(plantsOnGrid.entries()),
-        inGameTime: currentDay,
-        timestamp: new Date().toISOString(),
+      playerPos: { x: playerCharacter.x, y: playerCharacter.y },
+      gridState: grid.serialize(),
+      plantMap: Array.from(plantsOnGrid.entries()),
+      inGameTime: currentDay,
+      timestamp: new Date().toISOString(),
     };
     const saveData = JSON.stringify(saveFile);
     localStorage.setItem(key, saveData);
-    if (key != "autosave")
-        console.log(`Game saved under ${key}`);
+    if (key !== "autosave") console.log(`Game saved under ${key}`);
 }
-
+  
 function copyDataFromFile(saveFile) {
     playerCharacter.x = saveFile.playerPos.x;
     playerCharacter.y = saveFile.playerPos.y;
     grid.deserialize(saveFile.gridState);
     plantsOnGrid.clear();
     saveFile.plantMap.forEach((plant) => {
-        plantsOnGrid.set(plant[0], Plant.plantCopy(plant[1]));
+      const newPlant = Plant.plantCopy(plant[1]);
+      plantsOnGrid.set(plant[0], newPlant);
+      createPlantMesh(newPlant);
     });
+    updatePlayerPosition();
 }
 
 function listSaves() {
     console.log("Saves found:");
     for (let i = 0, len = localStorage.length; i < len; i++) {
-        console.log(localStorage.key(i));
+      console.log(localStorage.key(i));
     }
 }
-
+  
 function loadSave(key) {
     const saveData = localStorage.getItem(key);
     if (!saveData) {
-        console.error(`No save file found under ${key}`);
-        return;
+      console.error(`No save file found under ${key}`);
+      return;
     }
     const saveFile = JSON.parse(saveData);
     undoStack.splice(0, undoStack.length);
     redoStack.splice(0, redoStack.length);
+  
+    // Clear existing plants from scene
+    for (const [key, mesh] of plantMeshes) {
+      scene.remove(mesh);
+    }
+    plantMeshes.clear();
+  
     copyDataFromFile(saveFile);
-    notify("scene-changed");
+    checkWinCondition();
     console.log(`Game loaded from save ${key}`);
 }
 
-function autosavePrompt() {
+/*function autosavePrompt() {
     if (localStorage.getItem("autosave")) {
         if (confirm("Would you like to continue where you left off?"))
             loadSave("autosave");
         else
             localStorage.removeItem("autosave");
     }
-}
+}*/
 
 function checkScenarioWin() {
-    if (reapFull >= 20)
-        return true;
+    return reapFull >= 20;
+}
+  
+function checkWinCondition() {
+    if (checkScenarioWin() && !document.getElementById("winner")) {
+      document.body.appendChild(winText);
+    } else if (!checkScenarioWin() && document.getElementById("winner")) {
+      document.getElementById("winner").remove();
+    }
+    createSave("autosave");
 }
 
-function notify(name) {
+// Plant Selection Buttons
+for (let plantType of allPlantTypes) {
+    document.body.appendChild(createPlantButton(plantType.fullName));
+}
+  
+// Win Text
+const winText = document.createElement("h1");
+winText.innerHTML = "You win!";
+winText.id = "winner";
+
+/*function notify(name) {
     canvas.dispatchEvent(new Event(name));
-}
+}*/
 
+// Event Listeners
 window.addEventListener("keydown", (e) => {
     handleKeyboardInput(e.key);
 });
+  
+renderer.domElement.addEventListener("click", onRendererClick);
+
+// Initialize Game
+//autosavePrompt();
+checkWinCondition();
+
+// Animation Loop
+function animate() {
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+// Helper Functions
+function createGrid(gridWidth) {
+  const gridGroup = new THREE.Group();
+
+  const planeGeometry = new THREE.PlaneGeometry(gridWidth, gridWidth, gridWidth, gridWidth);
+  const planeMaterial = new THREE.MeshBasicMaterial({
+    color: 0x228B22, 
+    wireframe: true,
+  });
+  const gridPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+  gridPlane.rotation.x = -Math.PI / 2; 
+  gridGroup.add(gridPlane);
+
+  return gridGroup;
+}
+
+function updatePlayerPosition() {
+  playerMesh.position.set(playerCharacter.x + 0.5, 0.5, playerCharacter.y + 0.5);
+}
+
+function createPlantMesh(plant) {
+  const plantGeometry = new THREE.ConeGeometry(0.4, 1, 8);
+  const plantMaterial = new THREE.MeshLambertMaterial({ color: getPlantColor(plant) });
+  const plantMesh = new THREE.Mesh(plantGeometry, plantMaterial);
+
+  plantMesh.position.set(plant.x + 0.5, 0.5, plant.y + 0.5);
+  plantMesh.rotation.x = Math.PI / 2;
+  plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
+  scene.add(plantMesh);
+}
+
+function updatePlantMesh(plant) {
+  const key = `${plant.x}${plant.y}`;
+  const plantMesh = plantMeshes.get(key);
+  if (plantMesh) {
+    plantMesh.material.color.set(getPlantColor(plant));
+  }
+}
+
+function removePlantMesh(x, y) {
+  const key = `${x}${y}`;
+  const plantMesh = plantMeshes.get(key);
+  if (plantMesh) {
+    scene.remove(plantMesh);
+    plantMeshes.delete(key);
+  }
+}
+
+function getPlantColor(plant) {
+  // Change color based on growth stage
+  const colors = [0xADFF2F, 0x7CFC00, 0x32CD32, 0x006400]; // Light green to dark green
+  return colors[plant.growthStage] || 0x32CD32;
+}
+
+function onRendererClick(event) {
+  // Calculate mouse position in normalized device coordinates (-1 to +1)
+  const rect = renderer.domElement.getBoundingClientRect();
+  const mouse = new THREE.Vector2(
+    ((event.clientX - rect.left) / rect.width) * 2 - 1,
+    -((event.clientY - rect.top) / rect.height) * 2 + 1
+  );
+
+  // Raycaster
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(mouse, camera);
+
+  // Intersect with grid
+  const intersects = raycaster.intersectObject(gridGroup.children[0]);
+  if (intersects.length > 0) {
+    const intersect = intersects[0];
+    const point = intersect.point;
+
+    const gridX = Math.floor(point.x);
+    const gridY = Math.floor(point.z);
+
+    farmTheLand(gridX, gridY);
+  }
+}
 
 /*
 const canvas = document.createElement("canvas");
@@ -307,6 +485,7 @@ canvas.addEventListener("scene-changed", () => {
         document.body.appendChild(winText);
 })
 
+// UI Elements
 const undoButton = document.createElement("button");
 undoButton.innerHTML = "Undo";
 undoButton.addEventListener("click", Undo);
@@ -314,33 +493,33 @@ document.body.appendChild(undoButton);
 
 const redoButton = document.createElement("button");
 redoButton.innerHTML = "Redo";
-redoButton.addEventListener("click", Redo)
+redoButton.addEventListener("click", Redo);
 document.body.appendChild(redoButton);
 
 const saveButton = document.createElement("button");
 saveButton.innerHTML = "Save";
 saveButton.addEventListener("click", () => {
-    const key = prompt("Enter save name");
-    createSave(key);
-})
+  const key = prompt("Enter save name");
+  if (key) createSave(key);
+});
 document.body.appendChild(saveButton);
 
 const loadButton = document.createElement("button");
 loadButton.innerHTML = "Load";
 loadButton.addEventListener("click", () => {
-    listSaves();
-    const key = prompt("Enter save name");
-    loadSave(key);
-})
+  listSaves();
+  const key = prompt("Enter save name");
+  if (key) loadSave(key);
+});
 document.body.appendChild(loadButton);
 
 function createPlantButton(icon) {
     const plantButton = document.createElement("button");
     plantButton.innerHTML = `${icon}`;
     plantButton.addEventListener("click", () => {
-        currentPlantType = icon;
-        console.log(currentPlantType);
-    })
+      currentPlantType = icon;
+      console.log(`Current plant type: ${currentPlantType}`);
+    });
     return plantButton;
 }
 
@@ -361,7 +540,7 @@ notify("scene-changed");
 
 
 // //Renderer
-// const canvas = document.querySelector('#three-canvas');
+// const canvas = document.querySelector("#three-canvas");
 // const renderer = new THREE.WebGLRenderer({
 //     //canvas: 
 //     canvas,
@@ -373,7 +552,7 @@ notify("scene-changed");
 
 // //Scene
 // const scene = new THREE.Scene();
-// scene.background = new THREE.Color('white');
+// scene.background = new THREE.Color("white");
 
 // //Camera
 // const camera = new THREE.PerspectiveCamera(
@@ -388,11 +567,11 @@ notify("scene-changed");
 // //Lighting
 
 // //Ambient Lighting
-// const ambientLight = new THREE.AmbientLight('white', 3);
+// const ambientLight = new THREE.AmbientLight("white", 3);
 // scene.add(ambientLight);
 
 // //Directional Lighting
-// const directionalLight = new THREE.DirectionalLight('white', 3);
+// const directionalLight = new THREE.DirectionalLight("white", 3);
 // directionalLight.position.set(-3, 5, 1);
 // directionalLight.castShadow = true;
 // scene.add(directionalLight);
@@ -401,7 +580,7 @@ notify("scene-changed");
 // const box = new THREE.Mesh(
 //     new THREE.BoxGeometry(2, 2, 2),
 //     //new THREE.MeshBasicMaterial( {color: 0xFF6347})
-//     new THREE.MeshLambertMaterial({color: 'firebrick'})
+//     new THREE.MeshLambertMaterial({color: "firebrick"})
 // );
 // box.position.y = 1;
 // box.castShadow = true;

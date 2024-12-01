@@ -1,4 +1,4 @@
-import { allPlantDefinitions } from "./plants";
+import { allPlantDefinitions } from "./plants.js";
 
 export class Grid {
     constructor(width, height) {
