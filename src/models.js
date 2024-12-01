@@ -1,8 +1,9 @@
 import { allPlantDefinitions } from "./plants";
 
 export class Grid {
-    constructor() {
-        this.GRID_WIDTH = 6;
+    constructor(width, height) {
+        this.GRID_WIDTH = width;
+        this.GRID_HEIGHT = height;
 
         this.colOffset = 0;
         this.rowOffset = 4;
@@ -11,11 +12,11 @@ export class Grid {
         this.sowOffset = 16;
         this.cellSize = 20;
 
-        this.numCells = this.GRID_WIDTH * this.GRID_WIDTH;
+        this.numCells = this.GRID_WIDTH * this.GRID_HEIGHT;
         this.grid = new ArrayBuffer(this.cellSize * this.numCells);
         this.gridView = new DataView(this.grid);
         for (let col = 0; col < this.GRID_WIDTH; col++) {
-            for (let row = 0; row < this.GRID_WIDTH; row++) {
+            for (let row = 0; row < this.GRID_HEIGHT; row++) {
                 const sun = Math.floor(Math.random() * 10);
                 const water = Math.floor(Math.random() * 3);
                 this.initCell(col, row, sun, water);
@@ -72,7 +73,7 @@ export class Grid {
 
     randomize() {
         for (let col = 0; col < this.GRID_WIDTH; col++) {
-            for (let row = 0; row < this.GRID_WIDTH; row++) {
+            for (let row = 0; row < this.GRID_HEIGHT; row++) {
                 const cellOffset = this.getCellOffset(col, row);
                 const sun = Math.floor(Math.random() * 10);
                 this.gridView.setInt32(cellOffset + this.sunOffset, sun);
@@ -214,5 +215,13 @@ export class Plant {
 
     static plantCopy(plant) {
         return new Plant(plant.type, plant.x, plant.y, plant.growthStage);
+    }
+
+    static getTypeNames() {
+        const typeNames = [];
+        for (let plant of allPlantTypes) {
+            typeNames.push(plant.fullName);
+        }
+        return typeNames;
     }
 }

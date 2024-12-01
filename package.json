@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "js-yaml": "^4.1.0",
     "three": "^0.170.0"
   },
   "devDependencies": {
