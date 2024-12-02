@@ -2,7 +2,7 @@
   "version": "4",
   "specifiers": {
     "npm:js-yaml@^4.1.0": "4.1.0",
-    "npm:three@0.170": "0.170.0",
+    "npm:three@0.171": "0.171.0",
     "npm:vite@*": "5.4.8",
     "npm:vite@^5.4.11": "5.4.11"
   },
@@ -207,8 +207,8 @@
     "source-map-js@1.2.1": {
       "integrity": "sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA=="
     },
-    "three@0.170.0": {
-      "integrity": "sha512-FQK+LEpYc0fBD+J8g6oSEyyNzjp+Q7Ks1C568WWaoMRLW+TkNNWmenWeGgJjV105Gd+p/2ql1ZcjYvNiPZBhuQ=="
+    "three@0.171.0": {
+      "integrity": "sha512-Y/lAXPaKZPcEdkKjh0JOAHVv8OOnv/NDJqm0wjfCzyQmfKxV7zvkwsnBgPBKTzJHToSOhRGQAGbPJObT59B/PQ=="
     },
     "vite@5.4.11": {
       "integrity": "sha512-c7jFQRklXua0mTzneGW9QVyxFjUgwcihC4bXEtujIo2ouWCe1Ajt/amn2PCxYnhYfd5k09JX3SB7OYWFKYqj8Q==",
@@ -612,7 +612,7 @@
     "packageJson": {
       "dependencies": [
         "npm:js-yaml@^4.1.0",
-        "npm:three@0.170",
+        "npm:three@0.171",
         "npm:vite@^5.4.11"
       ]
     }

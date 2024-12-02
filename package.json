@@ -1,9 +1,9 @@
 {
   "dependencies": {
-    "js-yaml": "^4.1.0",
-    "three": "^0.170.0"
+    "js-yaml": "^4.1.0"
   },
   "devDependencies": {
+    "three": "^0.171.0",
     "vite": "^5.4.11"
   }
 }

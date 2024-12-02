@@ -1,6 +1,5 @@
-import * as THREE from "three";
+import * as THREE from "/node_modules/three/build/three.module.js";
 import YAML from "js-yaml";
-import { OrbitControls } from "https://deno.land/x/threejs_4_deno@v120/examples/jsm/controls/OrbitControls.js";
 
 import { Grid } from "./models.js";
 import { Player } from "./models.js";
@@ -14,15 +13,15 @@ const availablePlants = [];
 const plantsOnGrid = new Map();
 
 function scenarioLoader(scenario) {
-    width = scenario.grid_size[0];
-    height = scenario.grid_size[1];
+  width = scenario.grid_size[0];
+  height = scenario.grid_size[1];
 
-    for (let plantName of scenario.available_plants) {
-        if (Plant.getTypeNames().find(typeName => typeName == plantName))
-            availablePlants.push(plantName);
-        else
-            throw new Error("Invalid Scenario: Plant unrecognized");
-    }
+  for (let plantName of scenario.available_plants) {
+    if (Plant.getTypeNames().find(typeName => typeName == plantName))
+      availablePlants.push(plantName);
+    else
+      throw new Error("Invalid Scenario: Plant unrecognized");
+  }
 }
 
 const config = YAML.load(yamlString);
@@ -37,6 +36,223 @@ const redoStack = [];
 let currentPlantType = "corn";
 let currentDay = 0;
 let reapFull = 0;
+
+// Game Functions (Updated to work with THREE.js)
+function createMoveCommand(player, dx, dy) {
+  const data = { before_dx: 0, before_dy: 0 };
+  if (player.boundsCheck(dx, dy)) {
+    return {
+      execute() {
+        player.move(dx, dy);
+        data.before_dx = -dx;
+        data.before_dy = -dy;
+      },
+      undo() {
+        player.move(data.before_dx, data.before_dy);
+      }
+    };
+  }
+  return null;
+}
+
+function createTurnCommand(grid) {
+  const data = {
+    before_grid: grid.serialize(),
+    after_grid: "",
+    growthMap: new Map()
+  };
+  return {
+    execute() {
+      if (!data.after_grid) {
+        grid.randomize();
+        data.after_grid = grid.serialize();
+      } else {
+        grid.deserialize(data.after_grid);
+      }
+      for (const [key, plant] of plantsOnGrid) {
+        data.growthMap.set(key, plant.growthStage);
+        plant.grow(grid.getSunAt(plant.x, plant.y), grid.getWaterAt(plant.x, plant.y), plantsOnGrid);
+        updatePlantMesh(plant);
+      }
+    },
+    undo() {
+      grid.deserialize(data.before_grid);
+      for (const [key, plant] of plantsOnGrid) {
+        plant.growthStage = data.growthMap.get(key);
+        updatePlantMesh(plant);
+      }
+    },
+  };
+}
+
+function createSowCommand(x, y) {
+  const data = { plant: new Plant(currentPlantType, x, y, 0) };
+  return {
+    execute() {
+      plantsOnGrid.set(`${x}${y}`, data.plant);
+      grid.sowCell(x, y);
+    },
+    undo() {
+      plantsOnGrid.delete(`${x}${y}`);
+      grid.sowCell(x, y);
+    },
+  };
+}
+
+function createReapCommand(x, y) {
+  const data = { plant: plantsOnGrid.get(`${x}${y}`) };
+  return {
+    execute() {
+      plantsOnGrid.delete(`${x}${y}`);
+      if (plant.growthStage === 3)
+        reapFull++;
+      grid.sowCell(x, y);
+    },
+    undo() {
+      plantsOnGrid.set(`${x}${y}`, data.plant);
+      if (plant.growthStage === 3)
+        reapFull--;
+      grid.sowCell(x, y);
+    },
+  };
+}
+
+function handleKeyboardInput(key) {
+  redoStack.splice(0, redoStack.length);
+  const inputMap = {
+    "ArrowLeft": createMoveCommand(playerCharacter, -1, 0),
+    "ArrowRight": createMoveCommand(playerCharacter, 1, 0),
+    "ArrowUp": createMoveCommand(playerCharacter, 0, -1),
+    "ArrowDown": createMoveCommand(playerCharacter, 0, 1),
+    "Enter": createTurnCommand(grid),
+  };
+  const command = inputMap[key];
+  manageCommand(command);
+}
+
+function farmTheLand(x, y) {
+  redoStack.splice(0, redoStack.length);
+  if (playerCharacter.isAdjacent(x, y)) {
+    if (!grid.readCell(x, y).sowed)
+      manageCommand(createSowCommand(x, y));
+    else
+      manageCommand(createReapCommand(x, y));
+  }
+}
+
+function manageCommand(command) {
+  if (command) {
+    undoStack.push(command);
+    command.execute();
+    notify("scene-changed");
+  }
+}
+
+function Undo() {
+  if (undoStack.length > 0) {
+    const command = undoStack.pop();
+    command.undo();
+    redoStack.push(command);
+    notify("scene-changed");
+  }
+}
+
+function Redo() {
+  if (redoStack.length > 0) {
+    const command = redoStack.pop();
+    command.execute();
+    undoStack.push(command);
+    notify("scene-changed");
+  }
+}
+
+function createSave(key) {
+  const saveFile = {
+    playerPos: { x: playerCharacter.x, y: playerCharacter.y },
+    gridState: grid.serialize(),
+    plantMap: Array.from(plantsOnGrid.entries()),
+    inGameTime: currentDay,
+    timestamp: new Date().toISOString(),
+  };
+  const saveData = JSON.stringify(saveFile);
+  localStorage.setItem(key, saveData);
+  if (key !== "autosave")
+    console.log(`Game saved under ${key}`);
+}
+
+function copyDataFromFile(saveFile) {
+  playerCharacter.x = saveFile.playerPos.x;
+  playerCharacter.y = saveFile.playerPos.y;
+  grid.deserialize(saveFile.gridState);
+  plantsOnGrid.clear();
+  saveFile.plantMap.forEach((plant) => {
+    const newPlant = Plant.plantCopy(plant[1]);
+    plantsOnGrid.set(plant[0], newPlant);
+  });
+}
+
+function listSaves() {
+  console.log("Saves found:");
+  for (let i = 0, len = localStorage.length; i < len; i++) {
+    console.log(localStorage.key(i));
+  }
+}
+
+function loadSave(key) {
+  const saveData = localStorage.getItem(key);
+  if (!saveData) {
+    console.error(`No save file found under ${key}`);
+    return;
+  }
+  const saveFile = JSON.parse(saveData);
+  undoStack.splice(0, undoStack.length);
+  redoStack.splice(0, redoStack.length);
+
+  copyDataFromFile(saveFile);
+  notify("scene-changed");
+  console.log(`Game loaded from save ${key}`);
+}
+
+/*function autosavePrompt() {
+    if (localStorage.getItem("autosave")) {
+        if (confirm("Would you like to continue where you left off?"))
+            loadSave("autosave");
+        else
+            localStorage.removeItem("autosave");
+    }
+}*/
+
+function checkScenarioWin() {
+  return reapFull >= 20;
+}
+
+function checkWinCondition() {
+  if (checkScenarioWin() && !document.getElementById("winner")) {
+    document.body.appendChild(winText);
+  } else if (!checkScenarioWin() && document.getElementById("winner")) {
+    document.getElementById("winner").remove();
+  }
+  createSave("autosave");
+}
+
+// // Plant Selection Buttons
+// for (let plantType of allPlantTypes) {
+//     document.body.appendChild(createPlantButton(plantType.fullName));
+// }
+
+// Win Text
+const winText = document.createElement("h1");
+winText.innerHTML = "You win!";
+winText.id = "winner";
+
+function notify(name) {
+  window.dispatchEvent(new Event(name));
+}
+
+// Event Listeners
+window.addEventListener("keydown", (e) => {
+  handleKeyboardInput(e.key);
+});
 
 // THREE.js Setup
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -53,10 +269,12 @@ const camera = new THREE.PerspectiveCamera(
   1000 // Far clipping
 );
 camera.position.set(width / 2, 10, width + 5);
+camera.lookAt(width / 2, 0, height / 2);
+scene.add(camera);
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(width / 2, 0, width / 2);
-controls.update();
+// const controls = new OrbitControls(camera, renderer.domElement);
+// controls.target.set(width / 2, 0, width / 2);
+// controls.update();
 
 // Lighting
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -67,280 +285,48 @@ directionalLight.position.set(5, 10, 5);
 scene.add(directionalLight);
 
 // Grid Rendering
-const gridGroup = createGrid(grid.GRID_WIDTH);
+const gridGroup = createGrid(width, height);
 scene.add(gridGroup);
 
 // Player Rendering
 const playerMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
 const playerGeometry = new THREE.BoxGeometry(0.9, 0.9, 0.9);
 const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
-updatePlayerPosition();
+
 scene.add(playerMesh);
 
 // Plant Rendering
 const plantMeshes = new Map();
 
-// Game Functions (Updated to work with THREE.js)
-function createMoveCommand(player, dx, dy) {
-    const data = { before_dx: 0, before_dy: 0 };
-    if (player.boundsCheck(dx, dy)) {
-      return {
-        execute() {
-          player.move(dx, dy);
-          data.before_dx = -dx;
-          data.before_dy = -dy;
-          updatePlayerPosition();
-        },
-        undo() {
-          player.move(data.before_dx, data.before_dy);
-          updatePlayerPosition();
-        }
-      };
-    }
-    return null;
-  }
+window.addEventListener("scene-changed", () => {
 
-function createTurnCommand(grid) {
-    const data = {
-      before_grid: grid.serialize(),
-      after_grid: "",
-      growthMap: new Map()
-    };
-    return {
-      execute() {
-        if (!data.after_grid) {
-          grid.randomize();
-          data.after_grid = grid.serialize();
-        } else {
-          grid.deserialize(data.after_grid);
-        }
-        for (const [key, plant] of plantsOnGrid) {
-          data.growthMap.set(key, plant.growthStage);
-          plant.grow(grid.getSunAt(plant.x, plant.y), grid.getWaterAt(plant.x, plant.y), plantsOnGrid);
-          updatePlantMesh(plant);
-        }
-      },
-      undo() {
-        grid.deserialize(data.before_grid);
-        for (const [key, plant] of plantsOnGrid) {
-          plant.growthStage = data.growthMap.get(key);
-          updatePlantMesh(plant);
-        }
-      },
-    };
-}
-
-function createSowCommand(x, y) {
-    const data = { plant: new Plant(currentPlantType, x, y, 0) };
-    return {
-    execute() {
-        plantsOnGrid.set(`${x}${y}`, data.plant);
-        grid.sowCell(x, y);
-        createPlantMesh(data.plant);
-        },
-    undo() {
-        plantsOnGrid.delete(`${x}${y}`);
-        grid.sowCell(x, y);
-        removePlantMesh(x, y);
-    },
-};
-}
-
-function createReapCommand(x, y) {
-const data = { plant: plantsOnGrid.get(`${x}${y}`) };
-return {
-    execute() {
-        plantsOnGrid.delete(`${x}${y}`);
-        grid.sowCell(x, y);
-        removePlantMesh(x, y);
-        advanceScenario(data.plant);
-        },
-    undo() {
-        plantsOnGrid.set(`${x}${y}`, data.plant);
-        grid.sowCell(x, y);
-        createPlantMesh(data.plant);
-        revertScenario(data.plant);
-    },
-};
-}
-
-function advanceScenario(plant) {
-if (plant.growthStage === 3) reapFull++;
-}
-
-function revertScenario(plant) {
-if (plant.growthStage === 3) reapFull--;
-}
-
-function handleKeyboardInput(key) {
-    redoStack.splice(0, redoStack.length);
-    const inputMap = {
-      ArrowLeft: createMoveCommand(playerCharacter, -1, 0),
-      ArrowRight: createMoveCommand(playerCharacter, 1, 0),
-      ArrowUp: createMoveCommand(playerCharacter, 0, -1),
-      ArrowDown: createMoveCommand(playerCharacter, 0, 1),
-      Enter: createTurnCommand(grid),
-    };
-    const command = inputMap[key];
-    manageCommand(command);
-}
-
-function farmTheLand(x, y) {
-    redoStack.splice(0, redoStack.length);
-    if (playerCharacter.isAdjacent(x, y)) {
-      if (!grid.readCell(x, y).sowed) manageCommand(createSowCommand(x, y));
-      else manageCommand(createReapCommand(x, y));
-    }
-}
-
-function manageCommand(command) {
-  if (command) {
-    undoStack.push(command);
-    command.execute();
-    checkWinCondition();
-  }
-}
-
-function Undo() {
-  if (undoStack.length > 0) {
-    const command = undoStack.pop();
-    command.undo();
-    redoStack.push(command);
-    checkWinCondition();
-  }
-}
-
-function Redo() {
-  if (redoStack.length > 0) {
-    const command = redoStack.pop();
-    command.execute();
-    undoStack.push(command);
-    checkWinCondition();
-  }
-}
-
-function createSave(key) {
-    const saveFile = {
-      playerPos: { x: playerCharacter.x, y: playerCharacter.y },
-      gridState: grid.serialize(),
-      plantMap: Array.from(plantsOnGrid.entries()),
-      inGameTime: currentDay,
-      timestamp: new Date().toISOString(),
-    };
-    const saveData = JSON.stringify(saveFile);
-    localStorage.setItem(key, saveData);
-    if (key !== "autosave") console.log(`Game saved under ${key}`);
-}
-  
-function copyDataFromFile(saveFile) {
-    playerCharacter.x = saveFile.playerPos.x;
-    playerCharacter.y = saveFile.playerPos.y;
-    grid.deserialize(saveFile.gridState);
-    plantsOnGrid.clear();
-    saveFile.plantMap.forEach((plant) => {
-      const newPlant = Plant.plantCopy(plant[1]);
-      plantsOnGrid.set(plant[0], newPlant);
-      createPlantMesh(newPlant);
-    });
-    updatePlayerPosition();
-}
-
-function listSaves() {
-    console.log("Saves found:");
-    for (let i = 0, len = localStorage.length; i < len; i++) {
-      console.log(localStorage.key(i));
-    }
-}
-  
-function loadSave(key) {
-    const saveData = localStorage.getItem(key);
-    if (!saveData) {
-      console.error(`No save file found under ${key}`);
-      return;
-    }
-    const saveFile = JSON.parse(saveData);
-    undoStack.splice(0, undoStack.length);
-    redoStack.splice(0, redoStack.length);
-  
-    // Clear existing plants from scene
-    for (const [key, mesh] of plantMeshes) {
-      scene.remove(mesh);
-    }
-    plantMeshes.clear();
-  
-    copyDataFromFile(saveFile);
-    checkWinCondition();
-    console.log(`Game loaded from save ${key}`);
-}
-
-/*function autosavePrompt() {
-    if (localStorage.getItem("autosave")) {
-        if (confirm("Would you like to continue where you left off?"))
-            loadSave("autosave");
-        else
-            localStorage.removeItem("autosave");
-    }
-}*/
-
-function checkScenarioWin() {
-    return reapFull >= 20;
-}
-  
-function checkWinCondition() {
-    if (checkScenarioWin() && !document.getElementById("winner")) {
-      document.body.appendChild(winText);
-    } else if (!checkScenarioWin() && document.getElementById("winner")) {
-      document.getElementById("winner").remove();
-    }
-    createSave("autosave");
-}
-
-// Plant Selection Buttons
-for (let plantType of allPlantTypes) {
-    document.body.appendChild(createPlantButton(plantType.fullName));
-}
-  
-// Win Text
-const winText = document.createElement("h1");
-winText.innerHTML = "You win!";
-winText.id = "winner";
-
-/*function notify(name) {
-    canvas.dispatchEvent(new Event(name));
-}*/
-
-// Event Listeners
-window.addEventListener("keydown", (e) => {
-    handleKeyboardInput(e.key);
-});
-  
-renderer.domElement.addEventListener("click", onRendererClick);
-
+})
 // Initialize Game
 //autosavePrompt();
 checkWinCondition();
 
 // Animation Loop
 function animate() {
-    controls.update();
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
+  //controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
 }
 
 animate();
 
 // Helper Functions
-function createGrid(gridWidth) {
+function createGrid(gridWidth, gridHeight) {
   const gridGroup = new THREE.Group();
 
-  const planeGeometry = new THREE.PlaneGeometry(gridWidth, gridWidth, gridWidth, gridWidth);
+  const planeGeometry = new THREE.PlaneGeometry(gridWidth, gridHeight, gridWidth, gridHeight);
   const planeMaterial = new THREE.MeshBasicMaterial({
-    color: 0x228B22, 
+    color: 0x228B22,
     wireframe: true,
   });
   const gridPlane = new THREE.Mesh(planeGeometry, planeMaterial);
-  gridPlane.rotation.x = -Math.PI / 2; 
+  gridPlane.rotation.x = -Math.PI / 2;
   gridGroup.add(gridPlane);
+  console.log(gridPlane.position)
 
   return gridGroup;
 }
@@ -408,136 +394,7 @@ function onRendererClick(event) {
   }
 }
 
-/*
-const canvas = document.createElement("canvas");
-const tileWidth = 60;
-canvas.width = tileWidth * width;
-canvas.height = tileWidth * height;
-document.body.appendChild(canvas);
-
-const ctx = canvas.getContext("2d");
-
-canvas.addEventListener("click", (e) => {
-    const mouseX = e.offsetX;
-    const mouseY = e.offsetY;
-
-    const gridX = Math.floor(mouseX / tileWidth);
-    const gridY = Math.floor(mouseY / tileWidth);
-
-    farmTheLand(gridX, gridY);
-})
-
-function drawGrid() {
-    ctx.fillStyle = "green";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "black";
-    for (let x = 0; x <= width; x++) {
-        ctx.beginPath();
-        ctx.moveTo(x * tileWidth, 0);
-        ctx.lineTo(x * tileWidth, canvas.height);
-        ctx.stroke();
-    }
-    for (let y = 0; y <= height; y++) {
-        ctx.beginPath();
-        ctx.moveTo(0, y * tileWidth);
-        ctx.lineTo(canvas.width, y * tileWidth);
-        ctx.stroke();
-    }
-}
-
-function drawPlayer(player) {
-    const basePositionX = tileWidth * player.x;
-    const basePositionY = tileWidth * player.y;
-    const centerOffset = tileWidth / 2 - 10;
-
-    ctx.fillStyle = "black";
-    ctx.fillRect(basePositionX + centerOffset, basePositionY + centerOffset, 20, 20);
-}
-
-function drawPlants() {
-    for (const [key, plant] of plantsOnGrid) {
-        const basePositionX = tileWidth * plant.x;
-        const basePositionY = tileWidth * plant.y;
-        const centerOffset = tileWidth / 4;
-        const fontList = [
-            "24px monospace",
-            "28px monospace",
-            "32px monospace",
-            "36px monospace"
-        ]
-        ctx.font = fontList[plant.growthStage];
-        console.log()
-        ctx.fillText(plant.getIcon(), basePositionX + centerOffset, basePositionY + 2.5 * centerOffset);
-    }
-}
-
-canvas.addEventListener("scene-changed", () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawGrid();
-    drawPlayer(playerCharacter);
-    drawPlants();
-    createSave("autosave");
-
-    const winnerNode = document.getElementById("winner");
-    if (winnerNode)
-        winnerNode.remove();
-    if (checkScenarioWin())
-        document.body.appendChild(winText);
-})
-
-// UI Elements
-const undoButton = document.createElement("button");
-undoButton.innerHTML = "Undo";
-undoButton.addEventListener("click", Undo);
-document.body.appendChild(undoButton);
-
-const redoButton = document.createElement("button");
-redoButton.innerHTML = "Redo";
-redoButton.addEventListener("click", Redo);
-document.body.appendChild(redoButton);
-
-const saveButton = document.createElement("button");
-saveButton.innerHTML = "Save";
-saveButton.addEventListener("click", () => {
-  const key = prompt("Enter save name");
-  if (key) createSave(key);
-});
-document.body.appendChild(saveButton);
-
-const loadButton = document.createElement("button");
-loadButton.innerHTML = "Load";
-loadButton.addEventListener("click", () => {
-  listSaves();
-  const key = prompt("Enter save name");
-  if (key) loadSave(key);
-});
-document.body.appendChild(loadButton);
-
-function createPlantButton(icon) {
-    const plantButton = document.createElement("button");
-    plantButton.innerHTML = `${icon}`;
-    plantButton.addEventListener("click", () => {
-      currentPlantType = icon;
-      console.log(`Current plant type: ${currentPlantType}`);
-    });
-    return plantButton;
-}
-
-const winText = document.createElement("h1");
-winText.innerHTML = "You win!"
-winText.id = "winner";
-
-for (let key of availablePlants) {
-    document.body.appendChild(createPlantButton(key));
-}
-
-autosavePrompt();
-notify("scene-changed");
-*/
-
-
-
-
+renderer.domElement.addEventListener("click", onRendererClick);
 
 // //Renderer
 // const canvas = document.querySelector("#three-canvas");
