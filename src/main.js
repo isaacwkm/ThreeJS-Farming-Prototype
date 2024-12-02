@@ -102,10 +102,12 @@ function createSowCommand(x, y) {
   return {
     execute() {
       plantsOnGrid.set(`${x}${y}`, data.plant);
+      createPlantMesh(data.plant);
       grid.sowCell(x, y);
     },
     undo() {
       plantsOnGrid.delete(`${x}${y}`);
+      removePlantMesh(x, y);
       grid.sowCell(x, y);
     },
   };
@@ -272,14 +274,24 @@ window.addEventListener("keydown", (e) => {
   handleKeyboardInput(e.key);
 })
 
+// THREE.js Setup
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
 // // THREE.js Setup
 // const renderer = new THREE.WebGLRenderer({ antialias: true });
 // renderer.setSize(window.innerWidth, window.innerHeight);
 // document.body.appendChild(renderer.domElement);
 
-// const scene = new THREE.Scene();
-// scene.background = new THREE.Color(0x87ceeb); // Sky blue
+const camera = new THREE.PerspectiveCamera(
+    60, // FOV
+    window.innerWidth / window.innerHeight,
+    0.1, // Near clipping
+    1000 // Far clipping
+);
+camera.position.set(0, height, width);
+scene.add(camera);
 
 // const camera = new THREE.PerspectiveCamera(
 //   50, // FOV
@@ -295,31 +307,54 @@ window.addEventListener("keydown", (e) => {
 // const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 // scene.add(ambientLight);
 
-// const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-// directionalLight.position.set(5, 10, 5);
-// scene.add(directionalLight);
+// Grid Rendering
+const gridGroup = createGrid(width, height);
+scene.add(gridGroup);
+camera.lookAt(gridGroup.position);
 
-// // Grid Rendering
-// const gridGroup = createGrid(width, height);
-// scene.add(gridGroup);
+function createGrid(gridWidth, gridHeight) {
+    const gridGroup = new THREE.Group();
+  
+    for (let i = 0; i < gridWidth; i++) {
+        for (let j = 0; j < gridHeight; j++) {
+            const planeGeometry = new THREE.PlaneGeometry(1, 1);
+            const planeMaterial = new THREE.MeshBasicMaterial({
+                color: 0x228B22,
+                wireframe: true,
+            });
+            const gridPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+            gridPlane.rotation.x = -Math.PI / 2;
+            gridPlane.position.set(i, 0, j);
+            gridGroup.add(gridPlane);
+            console.log(gridPlane.position);
+        }
+    }
+  
+    return gridGroup;
+}
 
-// // Player Rendering
-// const playerMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
-// const playerGeometry = new THREE.BoxGeometry(0.9, 0.9, 0.9);
-// const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
+function updatePlayerPosition() {
+    playerMesh.position.set(playerCharacter.x, 0.5, playerCharacter.y);
+    camera.position.set(0, height , width + playerCharacter.y);
+}
+
+// Player Rendering
+const playerMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
+const playerGeometry = new THREE.BoxGeometry(0.9, 0.9, 0.9);
+const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
+scene.add(playerMesh);
+playerMesh.position.set(0, 0.5, 0);
 
 // scene.add(playerMesh);
 
 // // Plant Rendering
 // const plantMeshes = new Map();
 
-// // Event Listeners
-// window.addEventListener("keydown", (e) => {
-//   handleKeyboardInput(e.key);
-// });
-
-// // USE THIS FOR SCENE CHANGES
-// window.addEventListener("scene-changed", () => {
+// USE THIS FOR SCENE CHANGES
+window.addEventListener("scene-changed", () => {
+    checkScenarioWin();
+    updatePlayerPosition();
+})
 
 // })
 
@@ -332,28 +367,11 @@ window.addEventListener("keydown", (e) => {
 //   requestAnimationFrame(animate);
 // }
 
-// animate();
-
-// // Helper Functions
-// function createGrid(gridWidth, gridHeight) {
-//   const gridGroup = new THREE.Group();
-
-//   const planeGeometry = new THREE.PlaneGeometry(gridWidth, gridHeight, gridWidth, gridHeight);
-//   const planeMaterial = new THREE.MeshBasicMaterial({
-//     color: 0x228B22,
-//     wireframe: true,
-//   });
-//   const gridPlane = new THREE.Mesh(planeGeometry, planeMaterial);
-//   gridPlane.rotation.x = -Math.PI / 2;
-//   gridGroup.add(gridPlane);
-//   console.log(gridPlane.position)
-
-//   return gridGroup;
-// }
-
-// function updatePlayerPosition() {
-//   playerMesh.position.set(playerCharacter.x + 0.5, 0.5, playerCharacter.y + 0.5);
-// }
+// Helper Functions
+function createPlantMesh(plant) {
+  const plantGeometry = new THREE.ConeGeometry(0.4, 1, 8);
+  const plantMaterial = new THREE.MeshLambertMaterial({ color: getPlantColor(plant) });
+  const plantMesh = new THREE.Mesh(plantGeometry, plantMaterial);
 
 // function createPlantMesh(plant) {
 //   const plantGeometry = new THREE.ConeGeometry(0.4, 1, 8);
@@ -492,4 +510,3 @@ window.addEventListener("keydown", (e) => {
 // }
 
 // animate();
-
