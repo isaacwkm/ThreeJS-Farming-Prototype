@@ -2,8 +2,8 @@ export const yamlString = `
 tutorial:
   grid_size: [5, 10]
   available_plants:
-    - corn
     - bean
+    - potato
   win_conditions:
     - plants: 10
       time: 20
@@ -19,8 +19,21 @@ drought:
     - description: "Drought"
       day: 10
       effects:
-        - type: "water"
-          change: 0
-        - type: "sun"
-          change: 20
+        - ["water", 0]
+        - ["sun", 20]
+storm:
+  grid_size: [6, 6]
+  available_plants:
+    - bean
+    - corn
+    - onion
+  win_conditions:
+    - plants: 15
+    - time: 20
+  special_events:
+    - description: "Storm"
+      day: 10
+      effects:
+        - ["water", 3]
+        - ["sun", 5]
 `;

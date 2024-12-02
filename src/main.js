@@ -36,6 +36,28 @@ function scenarioLoader(scenario) {
   }
 }
 
+function checkSpecialEvents(currentDay) {
+  const currentEvents = specialEvents.filter(event => event.day == currentDay)
+  for (const event of currentEvents) {
+    console.log(`Special Event: ${event.description}`);
+    applySpecialEvent(event.effects);
+  }
+}
+
+function applySpecialEvent(effects) {
+  for (const effect of effects) {
+    switch (effect.type) {
+      case "sun":
+        grid.increaseSunRange(effect.change);
+        grid.setGridValue("sun", effect.change);
+        break;
+      case "water":
+        grid.setGridValue("water", effect.change);
+        break;
+    }
+  }
+}
+
 const config = YAML.load(yamlString);
 scenarioLoader(config.drought);
 console.log(specialEvents);
@@ -184,28 +206,6 @@ function Redo() {
     command.execute();
     undoStack.push(command);
     notify("scene-changed");
-  }
-}
-
-function checkSpecialEvents(currentDay) {
-  const currentEvents = specialEvents.filter(event => event.day == currentDay)
-  for (const event of currentEvents) {
-    console.log(`Special Event: ${event.description}`);
-    applyEffects(event.effect);
-  }
-}
-
-function applyEffects(effects) {
-  for (const effect of effects) {
-    switch (effect.type) {
-      case "sun":
-        grid.increaseSunRange(effect.change);
-        grid.setGridValue("sun", effect.change);
-        break;
-      case "water":
-        grid.setGridValue("water", effect.change);
-        break;
-    }
   }
 }
 
