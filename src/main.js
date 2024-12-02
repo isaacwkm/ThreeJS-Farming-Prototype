@@ -3,7 +3,7 @@ import YAML from "js-yaml";
 
 import { Grid } from "./models.js";
 import { Player } from "./models.js";
-import { Plant, allPlantTypes } from "./models.js";
+import { Plant } from "./models.js";
 import { yamlString } from "./scenarios.js";
 
 // Game Initialization
@@ -22,6 +22,8 @@ function scenarioLoader(scenario) {
     else
       throw new Error("Invalid Scenario: Plant unrecognized");
   }
+
+
 }
 
 const config = YAML.load(yamlString);
@@ -104,13 +106,13 @@ function createReapCommand(x, y) {
   return {
     execute() {
       plantsOnGrid.delete(`${x}${y}`);
-      if (plant.growthStage === 3)
+      if (data.plant.growthStage == 3)
         reapFull++;
       grid.sowCell(x, y);
     },
     undo() {
       plantsOnGrid.set(`${x}${y}`, data.plant);
-      if (plant.growthStage === 3)
+      if (data.plant.growthStage == 3)
         reapFull--;
       grid.sowCell(x, y);
     },
@@ -213,14 +215,14 @@ function loadSave(key) {
   console.log(`Game loaded from save ${key}`);
 }
 
-/*function autosavePrompt() {
-    if (localStorage.getItem("autosave")) {
-        if (confirm("Would you like to continue where you left off?"))
-            loadSave("autosave");
-        else
-            localStorage.removeItem("autosave");
-    }
-}*/
+function autosavePrompt() {
+  if (localStorage.getItem("autosave")) {
+    if (confirm("Would you like to continue where you left off?"))
+      loadSave("autosave");
+    else
+      localStorage.removeItem("autosave");
+  }
+}
 
 function checkScenarioWin() {
   return reapFull >= 20;
@@ -235,24 +237,14 @@ function checkWinCondition() {
   createSave("autosave");
 }
 
-// // Plant Selection Buttons
-// for (let plantType of allPlantTypes) {
-//     document.body.appendChild(createPlantButton(plantType.fullName));
-// }
+function notify(name) {
+  window.dispatchEvent(new Event(name));
+}
 
 // Win Text
 const winText = document.createElement("h1");
 winText.innerHTML = "You win!";
 winText.id = "winner";
-
-function notify(name) {
-  window.dispatchEvent(new Event(name));
-}
-
-// Event Listeners
-window.addEventListener("keydown", (e) => {
-  handleKeyboardInput(e.key);
-});
 
 // THREE.js Setup
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -271,10 +263,6 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(width / 2, 10, width + 5);
 camera.lookAt(width / 2, 0, height / 2);
 scene.add(camera);
-
-// const controls = new OrbitControls(camera, renderer.domElement);
-// controls.target.set(width / 2, 0, width / 2);
-// controls.update();
 
 // Lighting
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -298,16 +286,22 @@ scene.add(playerMesh);
 // Plant Rendering
 const plantMeshes = new Map();
 
+// Event Listeners
+window.addEventListener("keydown", (e) => {
+  handleKeyboardInput(e.key);
+});
+
+// USE THIS FOR SCENE CHANGES
 window.addEventListener("scene-changed", () => {
 
 })
+
 // Initialize Game
 //autosavePrompt();
 checkWinCondition();
 
 // Animation Loop
 function animate() {
-  //controls.update();
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
