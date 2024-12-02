@@ -364,7 +364,6 @@ window.addEventListener("resize", () => {
 window.addEventListener("scene-changed", () => {
     checkScenarioWin();
     updatePlayerPosition();
-    updatePlantMesh();
 })
 
 
@@ -386,8 +385,8 @@ function createPlantMesh(plant) {
   const plantMaterial = new THREE.MeshLambertMaterial({ color: getPlantColor(plant) });
   const plantMesh = new THREE.Mesh(plantGeometry, plantMaterial);
 
-  plantMesh.position.set(plant.x + 0.5, 0.5, plant.y + 0.5);
-  plantMesh.rotation.x = Math.PI / 2;
+  plantMesh.position.set(plant.x, 0.5, plant.y);
+  //plantMesh.rotation.x = Math.PI / 2;
   plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
   scene.add(plantMesh);
 }
@@ -428,14 +427,17 @@ function onRendererClick(event) {
   raycaster.setFromCamera(mouse, camera);
 
   // Intersect with grid
-  const intersects = raycaster.intersectObject(gridGroup.children[0]);
-  console.log("GridGroup" + gridGroup.children[0]);
+  const intersects = raycaster.intersectObject(gridGroup);
+  console.log("GridGroup: " + gridGroup.children[0].type);
+  console.log(intersects.length);
   if (intersects.length > 0) {
     const intersect = intersects[0];
     const point = intersect.point;
 
     const gridX = Math.floor(point.x);
     const gridY = Math.floor(point.z);
+
+    console.log(`Clicked Grid Tile: (${gridX}, ${gridY})`);
 
     farmTheLand(gridX, gridY);
   }
@@ -462,83 +464,6 @@ PlantContainer.appendChild(drawPlantButton("🌽", "Corn"));
 PlantContainer.appendChild(drawPlantButton("🥔", "Potato"));
 PlantContainer.appendChild(drawPlantButton("🧅", "Onion"));
 PlantContainer.appendChild(drawPlantButton("", "Undo"));
-PlantContainer.appendChild(drawPlantButton("", "redo"));
+PlantContainer.appendChild(drawPlantButton("", "Redo"));
 PlantContainer.appendChild(drawPlantButton("", "Save"));
 PlantContainer.appendChild(drawPlantButton("", "Load"));
-
-// //Renderer
-// const canvas = document.querySelector("#three-canvas");
-// const renderer = new THREE.WebGLRenderer({
-//     //canvas: 
-//     canvas,
-//     antialias: true,
-// });
-// renderer.setPixelRatio(globalThis.devicePixelRatio);
-// renderer.setSize(globalThis.innerWidth, globalThis.innerHeight);
-// renderer.shadowMap.enabled = true;
-
-// //Scene
-// const scene = new THREE.Scene();
-// scene.background = new THREE.Color("white");
-
-// //Camera
-// const camera = new THREE.PerspectiveCamera(
-//     60,         //fov
-//     globalThis.innerWidth / globalThis.innerHeight, //aspect
-//     0.1,    //near
-//     1000,      //far
-// );
-// camera.position.set(-3, 3, 7);
-// scene.add(camera);
-
-// //Lighting
-
-// //Ambient Lighting
-// const ambientLight = new THREE.AmbientLight("white", 3);
-// scene.add(ambientLight);
-
-// //Directional Lighting
-// const directionalLight = new THREE.DirectionalLight("white", 3);
-// directionalLight.position.set(-3, 5, 1);
-// directionalLight.castShadow = true;
-// scene.add(directionalLight);
-
-// //Box
-// const box = new THREE.Mesh(
-//     new THREE.BoxGeometry(2, 2, 2),
-//     //new THREE.MeshBasicMaterial( {color: 0xFF6347})
-//     new THREE.MeshLambertMaterial({color: "firebrick"})
-// );
-// box.position.y = 1;
-// box.castShadow = true;
-
-// //Ground
-// const groundMesh = new THREE.Mesh(
-//     new THREE.PlaneGeometry(10, 10),
-//     //new THREE.MeshBasicMaterial( {color: 0x092e66})
-//     new THREE.MeshLambertMaterial({color: 0x092e66})
-// );
-
-// groundMesh.rotation.x = THREE.MathUtils.degToRad(-90);
-// //groundMesh.rotation.x = -Math.PI / 2;
-// groundMesh.receiveShadow = true;
-// scene.add(box, groundMesh);
-
-// //Camera Looking
-// camera.lookAt(box.position);
-
-// //Render Screen
-// renderer.render(scene, camera);
-
-// //Animate
-// function animate() {
-//     requestAnimationFrame(animate);
-
-//     box.rotation.x += 0.01;
-//     box.rotation.y += 0.005;
-//     box.rotation.z += 0.01;
-
-//     renderer.render(scene, camera);
-// }
-
-// animate();
