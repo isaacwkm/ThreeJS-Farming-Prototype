@@ -345,11 +345,19 @@ window.addEventListener("keydown", (e) => {
   handleKeyboardInput(e.key);
 });
 
+window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
 // USE THIS FOR SCENE CHANGES
 window.addEventListener("scene-changed", () => {
     checkScenarioWin();
     updatePlayerPosition();
 })
+
+
 
 // Initialize Game
 //autosavePrompt();
