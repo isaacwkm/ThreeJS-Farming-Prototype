@@ -174,7 +174,6 @@ function handleKeyboardInput(key) {
 
 function farmTheLand(x, y) {
   redoStack.splice(0, redoStack.length);
-  console.log("check" + playerCharacter.isAdjacent(x, y));
   if (playerCharacter.isAdjacent(x, y)) {
     if (!grid.readCell(x, y).sowed)
       manageCommand(createSowCommand(x, y));
@@ -428,8 +427,6 @@ function onRendererClick(event) {
 
   // Intersect with grid
   const intersects = raycaster.intersectObject(gridGroup);
-  console.log("GridGroup: " + gridGroup.children[0].type);
-  console.log(intersects.length);
   if (intersects.length > 0) {
     const intersect = intersects[0];
     const point = intersect.point;
@@ -463,7 +460,32 @@ PlantContainer.appendChild(drawPlantButton("🫘", "Bean"));
 PlantContainer.appendChild(drawPlantButton("🌽", "Corn"));
 PlantContainer.appendChild(drawPlantButton("🥔", "Potato"));
 PlantContainer.appendChild(drawPlantButton("🧅", "Onion"));
-PlantContainer.appendChild(drawPlantButton("", "Undo"));
-PlantContainer.appendChild(drawPlantButton("", "Redo"));
-PlantContainer.appendChild(drawPlantButton("", "Save"));
-PlantContainer.appendChild(drawPlantButton("", "Load"));
+
+//Progress Buttons
+const undo = document.createElement("button");
+undo.textContent = "Undo"; 
+undo.addEventListener("click", () => {
+    Undo();
+});
+PlantContainer.appendChild(undo);
+
+const redo = document.createElement("button");
+redo.textContent = "Redo"; 
+redo.addEventListener("click", () => {
+    Redo();
+});
+PlantContainer.appendChild(redo);
+
+const save = document.createElement("button");
+save.textContent = "Save"; 
+save.addEventListener("click", () => {
+    createSave();
+});
+PlantContainer.appendChild(save);
+
+const load = document.createElement("button");
+load.textContent = "Load"; 
+load.addEventListener("click", () => {
+    listSaves();
+});
+PlantContainer.appendChild(load);
