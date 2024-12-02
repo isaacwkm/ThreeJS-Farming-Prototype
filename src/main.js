@@ -6,6 +6,8 @@ import { Player } from "./models.js";
 import { Plant } from "./models.js";
 import { yamlString } from "./scenarios.js";
 
+import "./style.css";
+
 // Game Initialization
 let width;
 let height;
@@ -103,10 +105,12 @@ function createSowCommand(x, y) {
     execute() {
       plantsOnGrid.set(`${x}${y}`, data.plant);
       grid.sowCell(x, y);
+      createPlantMesh(data.plant);
     },
     undo() {
       plantsOnGrid.delete(`${x}${y}`);
       grid.sowCell(x, y);
+      removePlantMesh(x, y);
     },
   };
 }
@@ -119,12 +123,16 @@ function createReapCommand(x, y) {
       if (data.plant.growthStage == 3)
         adultsHarvested++;
       grid.sowCell(x, y);
+      removePlantMesh(x, y);
+      checkScenarioWin();
     },
     undo() {
       plantsOnGrid.set(`${x}${y}`, data.plant);
       if (data.plant.growthStage == 3)
         adultsHarvested--;
       grid.sowCell(x, y);
+      createPlantMesh(data.plant);
+      checkScenarioWin();
     },
   };
 }
@@ -144,6 +152,7 @@ function handleKeyboardInput(key) {
 
 function farmTheLand(x, y) {
   redoStack.splice(0, redoStack.length);
+  console.log("check" + playerCharacter.isAdjacent(x, y));
   if (playerCharacter.isAdjacent(x, y)) {
     if (!grid.readCell(x, y).sowed)
       manageCommand(createSowCommand(x, y));
@@ -318,7 +327,7 @@ function createGrid(gridWidth, gridHeight) {
             gridPlane.rotation.x = -Math.PI / 2;
             gridPlane.position.set(i, 0, j);
             gridGroup.add(gridPlane);
-            console.log(gridPlane.position);
+            //console.log(gridPlane.position);
         }
     }
   
@@ -355,6 +364,7 @@ window.addEventListener("resize", () => {
 window.addEventListener("scene-changed", () => {
     checkScenarioWin();
     updatePlayerPosition();
+    updatePlantMesh();
 })
 
 
@@ -419,6 +429,7 @@ function onRendererClick(event) {
 
   // Intersect with grid
   const intersects = raycaster.intersectObject(gridGroup.children[0]);
+  console.log("GridGroup" + gridGroup.children[0]);
   if (intersects.length > 0) {
     const intersect = intersects[0];
     const point = intersect.point;
@@ -431,6 +442,29 @@ function onRendererClick(event) {
 }
 
 renderer.domElement.addEventListener("click", onRendererClick);
+
+const PlantContainer = document.createElement("div");
+document.body.appendChild(PlantContainer);
+
+function drawPlantButton(emoji, label) {
+  const button = document.createElement("button");
+  button.textContent = `${emoji} ${label}`; 
+  button.addEventListener("click", () => {
+    currentPlantType = label.toLowerCase();
+    console.log(`Selected: ${label}`);
+  });
+  return button;
+}
+
+// Add buttons to the container
+PlantContainer.appendChild(drawPlantButton("🫘", "Bean"));
+PlantContainer.appendChild(drawPlantButton("🌽", "Corn"));
+PlantContainer.appendChild(drawPlantButton("🥔", "Potato"));
+PlantContainer.appendChild(drawPlantButton("🧅", "Onion"));
+PlantContainer.appendChild(drawPlantButton("", "Undo"));
+PlantContainer.appendChild(drawPlantButton("", "redo"));
+PlantContainer.appendChild(drawPlantButton("", "Save"));
+PlantContainer.appendChild(drawPlantButton("", "Load"));
 
 // //Renderer
 // const canvas = document.querySelector("#three-canvas");
