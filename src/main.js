@@ -180,15 +180,21 @@ function Redo() {
 
 function checkSpecialEvents(currentDay) {
   const currentEvents = specialEvents.filter(event => event.day == currentDay)
-  for (const event of currentEvents)
+  for (const event of currentEvents) {
     console.log(`Special Event: ${event.description}`);
+    applyEffects(event.effect);
+  }
 }
 
 function applyEffects(effects) {
   for (const effect of effects) {
     switch (effect.type) {
       case "sun":
-        grid.setSun(effect.change);
+        grid.increaseSunRange(effect.change);
+        grid.setGridValue("sun", effect.change);
+        break;
+      case "water":
+        grid.setGridValue("water", effect.change);
         break;
     }
   }

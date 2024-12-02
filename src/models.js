@@ -50,7 +50,7 @@ export class Grid {
         const sun = this.gridView.getInt32(cellOffset + this.sunOffset);
         const water = this.gridView.getInt32(cellOffset + this.waterOffset);
         const sowed = this.gridView.getInt32(cellOffset + this.sowOffset);
-        
+
         return { i, j, sun, water, sowed };
     }
 
@@ -64,19 +64,24 @@ export class Grid {
         return this.gridView.getInt32(cellOffset + this.waterOffset);
     }
 
-    setSun(value) {
+    increaseSunRange(value) {
         this.maxSun = value;
-        
     }
 
-    setWater(value) {
+    setGridValue(field, value) {
         for (let col = 0; col < this.GRID_WIDTH; col++) {
             for (let row = 0; row < this.GRID_HEIGHT; row++) {
                 const cellOffset = this.getCellOffset(col, row);
-                this.gridView.setInt32(cellOffset + this.sunOffset, value);
+                if (field === "sun")
+                    this.gridView.setInt32(cellOffset + this.sunOffset, value);
+                else if (field === "water")
+                    this.gridView.setInt32(cellOffset + this.waterOffset, value);
+                else
+                    throw new Error("Field not recognized");
             }
         }
     }
+
 
     sowCell(col, row) {
         const cellOffset = this.getCellOffset(col, row);
@@ -163,7 +168,7 @@ class internalPlant {
     }
 }
 
-function internalPlantCompiler (program) {
+function internalPlantCompiler(program) {
     const internalPlantType = new internalPlant();
     const dsl = {
         name(name) {
