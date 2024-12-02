@@ -5,7 +5,7 @@ export const allPlantDefinitions = [
         $.grow(({ plant, sun, water, neighbors }) => {
             const sameNeighbors = neighbors
                 .filter(neighbor => neighbor.type === plant.type);
-            const isHappy = sameNeighbors.length >= 2 && sun > 3 && water > 1;
+            const isHappy = sameNeighbors.length >= 2 && water > 1;
             return isHappy;
         });
     },
@@ -13,7 +13,7 @@ export const allPlantDefinitions = [
         $.name("corn");
         $.icon("🌽");
         $.grow(({ sun, water }) => {
-            const isHappy = sun > 3 && water < 2;
+            const isHappy = sun > 5 && water < 2;
             return isHappy;
         });
     },
@@ -21,7 +21,8 @@ export const allPlantDefinitions = [
         $.name("potato");
         $.icon("🥔");
         $.grow(({ water, neighbors }) => {
-            const isHappy = neighbors.length <= 2 && water > 2;
+            const isHappy = neighbors.length <= 2 && water > 2
+                && sun < 5;
             return isHappy;
         });
     },
@@ -32,7 +33,7 @@ export const allPlantDefinitions = [
             const sameNeighbors = neighbors
                 .filter(neighbor => neighbor.type === plant.type);
             const isHappy = neighbors.length >= 2
-                && sameNeighbors.length < 2 && water > 2;
+                && sameNeighbors.length < 2 && water < 2;
             return isHappy;
         }) 
     }
