@@ -12,12 +12,14 @@ export class Grid {
         this.sowOffset = 16;
         this.cellSize = 20;
 
+        this.maxSun = 10;
+
         this.numCells = this.GRID_WIDTH * this.GRID_HEIGHT;
         this.grid = new ArrayBuffer(this.cellSize * this.numCells);
         this.gridView = new DataView(this.grid);
         for (let col = 0; col < this.GRID_WIDTH; col++) {
             for (let row = 0; row < this.GRID_HEIGHT; row++) {
-                const sun = Math.floor(Math.random() * 10);
+                const sun = Math.floor(Math.random() * this.maxSun);
                 const water = Math.floor(Math.random() * 3);
                 this.initCell(col, row, sun, water);
             }
@@ -62,6 +64,20 @@ export class Grid {
         return this.gridView.getInt32(cellOffset + this.waterOffset);
     }
 
+    setSun(value) {
+        this.maxSun = value;
+        
+    }
+
+    setWater(value) {
+        for (let col = 0; col < this.GRID_WIDTH; col++) {
+            for (let row = 0; row < this.GRID_HEIGHT; row++) {
+                const cellOffset = this.getCellOffset(col, row);
+                this.gridView.setInt32(cellOffset + this.sunOffset, value);
+            }
+        }
+    }
+
     sowCell(col, row) {
         const cellOffset = this.getCellOffset(col, row);
         const sowBool = this.gridView.getInt32(cellOffset + this.sowOffset);
@@ -75,7 +91,7 @@ export class Grid {
         for (let col = 0; col < this.GRID_WIDTH; col++) {
             for (let row = 0; row < this.GRID_HEIGHT; row++) {
                 const cellOffset = this.getCellOffset(col, row);
-                const sun = Math.floor(Math.random() * 10);
+                const sun = Math.floor(Math.random() * this.maxSun);
                 this.gridView.setInt32(cellOffset + this.sunOffset, sun);
 
                 const waterVars = [-1, 0, 1, 2];

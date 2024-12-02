@@ -11,6 +11,7 @@ let width;
 let height;
 const availablePlants = [];
 let plantsRequirement = {plants: 0, time: 0};
+const specialEvents = [];
 
 const plantsOnGrid = new Map();
 
@@ -26,10 +27,16 @@ function scenarioLoader(scenario) {
   }
 
   plantsRequirement = scenario.win_conditions[0];
+
+  if (scenario.special_events) {
+    for (let event of scenario.special_events)
+      specialEvents.push(event);
+  }
 }
 
 const config = YAML.load(yamlString);
-scenarioLoader(config.tutorial);
+scenarioLoader(config.drought);
+console.log(specialEvents);
 
 const grid = new Grid(width, height);
 const playerCharacter = new Player(0, 0, width, height);
@@ -37,9 +44,9 @@ const playerCharacter = new Player(0, 0, width, height);
 const undoStack = [];
 const redoStack = [];
 
-let currentPlantType = "corn";
+let currentPlantType = availablePlants[0];
 let currentDay = 0;
-let reapFull = 0;
+let adultsHarvested = 0;
 
 // Game Functions (Updated to work with THREE.js)
 function createMoveCommand(player, dx, dy) {
@@ -69,6 +76,7 @@ function createTurnCommand(grid) {
     execute() {
       if (!data.after_grid) {
         grid.randomize();
+        checkSpecialEvents(currentDay);
         data.after_grid = grid.serialize();
       } else {
         grid.deserialize(data.after_grid);
@@ -109,13 +117,13 @@ function createReapCommand(x, y) {
     execute() {
       plantsOnGrid.delete(`${x}${y}`);
       if (data.plant.growthStage == 3)
-        reapFull++;
+        adultsHarvested++;
       grid.sowCell(x, y);
     },
     undo() {
       plantsOnGrid.set(`${x}${y}`, data.plant);
       if (data.plant.growthStage == 3)
-        reapFull--;
+        adultsHarvested--;
       grid.sowCell(x, y);
     },
   };
@@ -170,12 +178,28 @@ function Redo() {
   }
 }
 
+function checkSpecialEvents(currentDay) {
+  const currentEvents = specialEvents.filter(event => event.day == currentDay)
+  for (const event of currentEvents)
+    console.log(`Special Event: ${event.description}`);
+}
+
+function applyEffects(effects) {
+  for (const effect of effects) {
+    switch (effect.type) {
+      case "sun":
+        grid.setSun(effect.change);
+        break;
+    }
+  }
+}
+
 function createSave(key) {
   const saveFile = {
     playerPos: { x: playerCharacter.x, y: playerCharacter.y },
     gridState: grid.serialize(),
     plantMap: Array.from(plantsOnGrid.entries()),
-    inGameTime: currentDay,
+    gameState: { currentDay, adultsHarvested },
     timestamp: new Date().toISOString(),
   };
   const saveData = JSON.stringify(saveFile);
@@ -187,12 +211,17 @@ function createSave(key) {
 function copyDataFromFile(saveFile) {
   playerCharacter.x = saveFile.playerPos.x;
   playerCharacter.y = saveFile.playerPos.y;
+
   grid.deserialize(saveFile.gridState);
+
   plantsOnGrid.clear();
   saveFile.plantMap.forEach((plant) => {
     const newPlant = Plant.plantCopy(plant[1]);
     plantsOnGrid.set(plant[0], newPlant);
   });
+
+  currentDay = saveFile.gameState.currentDay;
+  adultsHarvested = saveFile.gameState.adultsHarvested;
 }
 
 function listSaves() {
@@ -227,7 +256,7 @@ function autosavePrompt() {
 }
 
 function checkScenarioWin() {
-  const win = reapFull >= plantsRequirement.plants && currentDay <= plantsRequirement.time;
+  const win = adultsHarvested >= plantsRequirement.plants && currentDay <= plantsRequirement.time;
   const lose = currentDay > plantsRequirement.time;
   if (win)
     notify("win");
@@ -236,155 +265,156 @@ function checkScenarioWin() {
 }
 
 function notify(name) {
-  window.dispatchEvent(new Event(name));
+  canvas.dispatchEvent(new Event(name));
 }
 
 window.addEventListener("keydown", (e) => {
   handleKeyboardInput(e.key);
 })
 
-// THREE.js Setup
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb); // Sky blue
+// // THREE.js Setup
+// const renderer = new THREE.WebGLRenderer({ antialias: true });
+// renderer.setSize(window.innerWidth, window.innerHeight);
+// document.body.appendChild(renderer.domElement);
 
-const camera = new THREE.PerspectiveCamera(
-  50, // FOV
-  window.innerWidth / window.innerHeight,
-  0.1, // Near clipping
-  1000 // Far clipping
-);
-camera.position.set(width / 2, 10, width + 5);
-camera.lookAt(width / 2, 0, height / 2);
-scene.add(camera);
+// const scene = new THREE.Scene();
+// scene.background = new THREE.Color(0x87ceeb); // Sky blue
 
-// Lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambientLight);
+// const camera = new THREE.PerspectiveCamera(
+//   50, // FOV
+//   window.innerWidth / window.innerHeight,
+//   0.1, // Near clipping
+//   1000 // Far clipping
+// );
+// camera.position.set(width / 2, 10, width + 5);
+// camera.lookAt(width / 2, 0, height / 2);
+// scene.add(camera);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-directionalLight.position.set(5, 10, 5);
-scene.add(directionalLight);
+// // Lighting
+// const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+// scene.add(ambientLight);
 
-// Grid Rendering
-const gridGroup = createGrid(width, height);
-scene.add(gridGroup);
+// const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+// directionalLight.position.set(5, 10, 5);
+// scene.add(directionalLight);
 
-// Player Rendering
-const playerMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
-const playerGeometry = new THREE.BoxGeometry(0.9, 0.9, 0.9);
-const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
+// // Grid Rendering
+// const gridGroup = createGrid(width, height);
+// scene.add(gridGroup);
 
-scene.add(playerMesh);
+// // Player Rendering
+// const playerMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
+// const playerGeometry = new THREE.BoxGeometry(0.9, 0.9, 0.9);
+// const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
 
-// Plant Rendering
-const plantMeshes = new Map();
+// scene.add(playerMesh);
 
-// Event Listeners
-window.addEventListener("keydown", (e) => {
-  handleKeyboardInput(e.key);
-});
+// // Plant Rendering
+// const plantMeshes = new Map();
 
-// USE THIS FOR SCENE CHANGES
-window.addEventListener("scene-changed", () => {
+// // Event Listeners
+// window.addEventListener("keydown", (e) => {
+//   handleKeyboardInput(e.key);
+// });
 
-})
+// // USE THIS FOR SCENE CHANGES
+// window.addEventListener("scene-changed", () => {
 
-// Initialize Game
-//autosavePrompt();
+// })
 
-// Animation Loop
-function animate() {
-  renderer.render(scene, camera);
-  requestAnimationFrame(animate);
-}
+// // Initialize Game
+// //autosavePrompt();
 
-animate();
+// // Animation Loop
+// function animate() {
+//   renderer.render(scene, camera);
+//   requestAnimationFrame(animate);
+// }
 
-// Helper Functions
-function createGrid(gridWidth, gridHeight) {
-  const gridGroup = new THREE.Group();
+// animate();
 
-  const planeGeometry = new THREE.PlaneGeometry(gridWidth, gridHeight, gridWidth, gridHeight);
-  const planeMaterial = new THREE.MeshBasicMaterial({
-    color: 0x228B22,
-    wireframe: true,
-  });
-  const gridPlane = new THREE.Mesh(planeGeometry, planeMaterial);
-  gridPlane.rotation.x = -Math.PI / 2;
-  gridGroup.add(gridPlane);
-  console.log(gridPlane.position)
+// // Helper Functions
+// function createGrid(gridWidth, gridHeight) {
+//   const gridGroup = new THREE.Group();
 
-  return gridGroup;
-}
+//   const planeGeometry = new THREE.PlaneGeometry(gridWidth, gridHeight, gridWidth, gridHeight);
+//   const planeMaterial = new THREE.MeshBasicMaterial({
+//     color: 0x228B22,
+//     wireframe: true,
+//   });
+//   const gridPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+//   gridPlane.rotation.x = -Math.PI / 2;
+//   gridGroup.add(gridPlane);
+//   console.log(gridPlane.position)
 
-function updatePlayerPosition() {
-  playerMesh.position.set(playerCharacter.x + 0.5, 0.5, playerCharacter.y + 0.5);
-}
+//   return gridGroup;
+// }
 
-function createPlantMesh(plant) {
-  const plantGeometry = new THREE.ConeGeometry(0.4, 1, 8);
-  const plantMaterial = new THREE.MeshLambertMaterial({ color: getPlantColor(plant) });
-  const plantMesh = new THREE.Mesh(plantGeometry, plantMaterial);
+// function updatePlayerPosition() {
+//   playerMesh.position.set(playerCharacter.x + 0.5, 0.5, playerCharacter.y + 0.5);
+// }
 
-  plantMesh.position.set(plant.x + 0.5, 0.5, plant.y + 0.5);
-  plantMesh.rotation.x = Math.PI / 2;
-  plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
-  scene.add(plantMesh);
-}
+// function createPlantMesh(plant) {
+//   const plantGeometry = new THREE.ConeGeometry(0.4, 1, 8);
+//   const plantMaterial = new THREE.MeshLambertMaterial({ color: getPlantColor(plant) });
+//   const plantMesh = new THREE.Mesh(plantGeometry, plantMaterial);
 
-function updatePlantMesh(plant) {
-  const key = `${plant.x}${plant.y}`;
-  const plantMesh = plantMeshes.get(key);
-  if (plantMesh) {
-    plantMesh.material.color.set(getPlantColor(plant));
-  }
-}
+//   plantMesh.position.set(plant.x + 0.5, 0.5, plant.y + 0.5);
+//   plantMesh.rotation.x = Math.PI / 2;
+//   plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
+//   scene.add(plantMesh);
+// }
 
-function removePlantMesh(x, y) {
-  const key = `${x}${y}`;
-  const plantMesh = plantMeshes.get(key);
-  if (plantMesh) {
-    scene.remove(plantMesh);
-    plantMeshes.delete(key);
-  }
-}
+// function updatePlantMesh(plant) {
+//   const key = `${plant.x}${plant.y}`;
+//   const plantMesh = plantMeshes.get(key);
+//   if (plantMesh) {
+//     plantMesh.material.color.set(getPlantColor(plant));
+//   }
+// }
 
-function getPlantColor(plant) {
-  // Change color based on growth stage
-  const colors = [0xADFF2F, 0x7CFC00, 0x32CD32, 0x006400]; // Light green to dark green
-  return colors[plant.growthStage] || 0x32CD32;
-}
+// function removePlantMesh(x, y) {
+//   const key = `${x}${y}`;
+//   const plantMesh = plantMeshes.get(key);
+//   if (plantMesh) {
+//     scene.remove(plantMesh);
+//     plantMeshes.delete(key);
+//   }
+// }
 
-function onRendererClick(event) {
-  // Calculate mouse position in normalized device coordinates (-1 to +1)
-  const rect = renderer.domElement.getBoundingClientRect();
-  const mouse = new THREE.Vector2(
-    ((event.clientX - rect.left) / rect.width) * 2 - 1,
-    -((event.clientY - rect.top) / rect.height) * 2 + 1
-  );
+// function getPlantColor(plant) {
+//   // Change color based on growth stage
+//   const colors = [0xADFF2F, 0x7CFC00, 0x32CD32, 0x006400]; // Light green to dark green
+//   return colors[plant.growthStage] || 0x32CD32;
+// }
 
-  // Raycaster
-  const raycaster = new THREE.Raycaster();
-  raycaster.setFromCamera(mouse, camera);
+// function onRendererClick(event) {
+//   // Calculate mouse position in normalized device coordinates (-1 to +1)
+//   const rect = renderer.domElement.getBoundingClientRect();
+//   const mouse = new THREE.Vector2(
+//     ((event.clientX - rect.left) / rect.width) * 2 - 1,
+//     -((event.clientY - rect.top) / rect.height) * 2 + 1
+//   );
 
-  // Intersect with grid
-  const intersects = raycaster.intersectObject(gridGroup.children[0]);
-  if (intersects.length > 0) {
-    const intersect = intersects[0];
-    const point = intersect.point;
+//   // Raycaster
+//   const raycaster = new THREE.Raycaster();
+//   raycaster.setFromCamera(mouse, camera);
 
-    const gridX = Math.floor(point.x);
-    const gridY = Math.floor(point.z);
+//   // Intersect with grid
+//   const intersects = raycaster.intersectObject(gridGroup.children[0]);
+//   if (intersects.length > 0) {
+//     const intersect = intersects[0];
+//     const point = intersect.point;
 
-    farmTheLand(gridX, gridY);
-  }
-}
+//     const gridX = Math.floor(point.x);
+//     const gridY = Math.floor(point.z);
 
-renderer.domElement.addEventListener("click", onRendererClick);
+//     farmTheLand(gridX, gridY);
+//   }
+// }
+
+// renderer.domElement.addEventListener("click", onRendererClick);
 
 // //Renderer
 // const canvas = document.querySelector("#three-canvas");
