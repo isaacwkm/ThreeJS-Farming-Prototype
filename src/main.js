@@ -10,8 +10,6 @@ import { yamlString } from "./scenarios.js";
 let width;
 let height;
 const availablePlants = [];
-let plantsRequirement = {plants: 0, time: 0};
-
 const plantsOnGrid = new Map();
 
 function scenarioLoader(scenario) {
@@ -25,7 +23,7 @@ function scenarioLoader(scenario) {
       throw new Error("Invalid Scenario: Plant unrecognized");
   }
 
-  plantsRequirement = scenario.win_conditions[0];
+
 }
 
 const config = YAML.load(yamlString);
@@ -76,15 +74,15 @@ function createTurnCommand(grid) {
       for (const [key, plant] of plantsOnGrid) {
         data.growthMap.set(key, plant.growthStage);
         plant.grow(grid.getSunAt(plant.x, plant.y), grid.getWaterAt(plant.x, plant.y), plantsOnGrid);
+        updatePlantMesh(plant);
       }
-      currentDay++;
     },
     undo() {
       grid.deserialize(data.before_grid);
       for (const [key, plant] of plantsOnGrid) {
         plant.growthStage = data.growthMap.get(key);
+        updatePlantMesh(plant);
       }
-      currentDay--;
     },
   };
 }
@@ -94,10 +92,12 @@ function createSowCommand(x, y) {
   return {
     execute() {
       plantsOnGrid.set(`${x}${y}`, data.plant);
+      createPlantMesh(data.plant);
       grid.sowCell(x, y);
     },
     undo() {
       plantsOnGrid.delete(`${x}${y}`);
+      removePlantMesh(x, y);
       grid.sowCell(x, y);
     },
   };
@@ -110,12 +110,14 @@ function createReapCommand(x, y) {
       plantsOnGrid.delete(`${x}${y}`);
       if (data.plant.growthStage == 3)
         reapFull++;
+      removePlantMesh(x, y);
       grid.sowCell(x, y);
     },
     undo() {
       plantsOnGrid.set(`${x}${y}`, data.plant);
       if (data.plant.growthStage == 3)
         reapFull--;
+      createPlantMesh(data.plant);
       grid.sowCell(x, y);
     },
   };
@@ -227,21 +229,26 @@ function autosavePrompt() {
 }
 
 function checkScenarioWin() {
-  const win = reapFull >= plantsRequirement.plants && currentDay <= plantsRequirement.time;
-  const lose = currentDay > plantsRequirement.time;
-  if (win)
-    notify("win");
-  else if (lose)
-    notify("lose");
+  return reapFull >= 20;
+}
+
+function checkWinCondition() {
+  if (checkScenarioWin() && !document.getElementById("winner")) {
+    document.body.appendChild(winText);
+  } else if (!checkScenarioWin() && document.getElementById("winner")) {
+    document.getElementById("winner").remove();
+  }
+  createSave("autosave");
 }
 
 function notify(name) {
   window.dispatchEvent(new Event(name));
 }
 
-window.addEventListener("keydown", (e) => {
-  handleKeyboardInput(e.key);
-})
+// Win Text
+const winText = document.createElement("h1");
+winText.innerHTML = "You win!";
+winText.id = "winner";
 
 // THREE.js Setup
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -252,13 +259,12 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb); // Sky blue
 
 const camera = new THREE.PerspectiveCamera(
-  50, // FOV
+  60, // FOV
   window.innerWidth / window.innerHeight,
   0.1, // Near clipping
   1000 // Far clipping
 );
-camera.position.set(width / 2, 10, width + 5);
-camera.lookAt(width / 2, 0, height / 2);
+camera.position.set(0, height, width);
 scene.add(camera);
 
 // Lighting
@@ -272,13 +278,40 @@ scene.add(directionalLight);
 // Grid Rendering
 const gridGroup = createGrid(width, height);
 scene.add(gridGroup);
+camera.lookAt(gridGroup.position);
+
+function createGrid(gridWidth, gridHeight) {
+    const gridGroup = new THREE.Group();
+  
+    for (let i = 0; i < gridWidth; i++) {
+        for (let j = 0; j < gridHeight; j++) {
+            const planeGeometry = new THREE.PlaneGeometry(1, 1);
+            const planeMaterial = new THREE.MeshBasicMaterial({
+                color: 0x228B22,
+                wireframe: true,
+            });
+            const gridPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+            gridPlane.rotation.x = -Math.PI / 2;
+            gridPlane.position.set(i, 0, j);
+            gridGroup.add(gridPlane);
+            console.log(gridPlane.position);
+        }
+    }
+  
+    return gridGroup;
+  }
+  
+function updatePlayerPosition() {
+    playerMesh.position.set(playerCharacter.x, 0.5, playerCharacter.y);
+    camera.position.set(0, height , width + playerCharacter.y);
+}
 
 // Player Rendering
 const playerMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
 const playerGeometry = new THREE.BoxGeometry(0.9, 0.9, 0.9);
 const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
-
 scene.add(playerMesh);
+playerMesh.position.set(0, 0.5, 0);
 
 // Plant Rendering
 const plantMeshes = new Map();
@@ -290,7 +323,8 @@ window.addEventListener("keydown", (e) => {
 
 // USE THIS FOR SCENE CHANGES
 window.addEventListener("scene-changed", () => {
-
+    checkWinCondition();
+    updatePlayerPosition();
 })
 
 // Initialize Game
@@ -305,26 +339,6 @@ function animate() {
 animate();
 
 // Helper Functions
-function createGrid(gridWidth, gridHeight) {
-  const gridGroup = new THREE.Group();
-
-  const planeGeometry = new THREE.PlaneGeometry(gridWidth, gridHeight, gridWidth, gridHeight);
-  const planeMaterial = new THREE.MeshBasicMaterial({
-    color: 0x228B22,
-    wireframe: true,
-  });
-  const gridPlane = new THREE.Mesh(planeGeometry, planeMaterial);
-  gridPlane.rotation.x = -Math.PI / 2;
-  gridGroup.add(gridPlane);
-  console.log(gridPlane.position)
-
-  return gridGroup;
-}
-
-function updatePlayerPosition() {
-  playerMesh.position.set(playerCharacter.x + 0.5, 0.5, playerCharacter.y + 0.5);
-}
-
 function createPlantMesh(plant) {
   const plantGeometry = new THREE.ConeGeometry(0.4, 1, 8);
   const plantMaterial = new THREE.MeshLambertMaterial({ color: getPlantColor(plant) });
@@ -462,4 +476,3 @@ renderer.domElement.addEventListener("click", onRendererClick);
 // }
 
 // animate();
-
