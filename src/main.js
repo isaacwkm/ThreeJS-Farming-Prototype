@@ -102,12 +102,10 @@ function createSowCommand(x, y) {
   return {
     execute() {
       plantsOnGrid.set(`${x}${y}`, data.plant);
-      createPlantMesh(data.plant);
       grid.sowCell(x, y);
     },
     undo() {
       plantsOnGrid.delete(`${x}${y}`);
-      removePlantMesh(x, y);
       grid.sowCell(x, y);
     },
   };
@@ -279,10 +277,8 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// // THREE.js Setup
-// const renderer = new THREE.WebGLRenderer({ antialias: true });
-// renderer.setSize(window.innerWidth, window.innerHeight);
-// document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb); // Sky blue
 
 const camera = new THREE.PerspectiveCamera(
     60, // FOV
@@ -293,19 +289,13 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, height, width);
 scene.add(camera);
 
-// const camera = new THREE.PerspectiveCamera(
-//   50, // FOV
-//   window.innerWidth / window.innerHeight,
-//   0.1, // Near clipping
-//   1000 // Far clipping
-// );
-// camera.position.set(width / 2, 10, width + 5);
-// camera.lookAt(width / 2, 0, height / 2);
-// scene.add(camera);
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
 
-// // Lighting
-// const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-// scene.add(ambientLight);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+directionalLight.position.set(5, 10, 5);
+scene.add(directionalLight);
 
 // Grid Rendering
 const gridGroup = createGrid(width, height);
@@ -345,10 +335,13 @@ const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
 scene.add(playerMesh);
 playerMesh.position.set(0, 0.5, 0);
 
-// scene.add(playerMesh);
+// Plant Rendering
+const plantMeshes = new Map();
 
-// // Plant Rendering
-// const plantMeshes = new Map();
+// Event Listeners
+window.addEventListener("keydown", (e) => {
+  handleKeyboardInput(e.key);
+});
 
 // USE THIS FOR SCENE CHANGES
 window.addEventListener("scene-changed", () => {
@@ -356,16 +349,16 @@ window.addEventListener("scene-changed", () => {
     updatePlayerPosition();
 })
 
-// })
+// Initialize Game
+//autosavePrompt();
 
-// // Initialize Game
-// //autosavePrompt();
+// Animation Loop
+function animate() {
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
 
-// // Animation Loop
-// function animate() {
-//   renderer.render(scene, camera);
-//   requestAnimationFrame(animate);
-// }
+animate();
 
 // Helper Functions
 function createPlantMesh(plant) {
@@ -373,66 +366,61 @@ function createPlantMesh(plant) {
   const plantMaterial = new THREE.MeshLambertMaterial({ color: getPlantColor(plant) });
   const plantMesh = new THREE.Mesh(plantGeometry, plantMaterial);
 
-// function createPlantMesh(plant) {
-//   const plantGeometry = new THREE.ConeGeometry(0.4, 1, 8);
-//   const plantMaterial = new THREE.MeshLambertMaterial({ color: getPlantColor(plant) });
-//   const plantMesh = new THREE.Mesh(plantGeometry, plantMaterial);
+  plantMesh.position.set(plant.x + 0.5, 0.5, plant.y + 0.5);
+  plantMesh.rotation.x = Math.PI / 2;
+  plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
+  scene.add(plantMesh);
+}
 
-//   plantMesh.position.set(plant.x + 0.5, 0.5, plant.y + 0.5);
-//   plantMesh.rotation.x = Math.PI / 2;
-//   plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
-//   scene.add(plantMesh);
-// }
+function updatePlantMesh(plant) {
+  const key = `${plant.x}${plant.y}`;
+  const plantMesh = plantMeshes.get(key);
+  if (plantMesh) {
+    plantMesh.material.color.set(getPlantColor(plant));
+  }
+}
 
-// function updatePlantMesh(plant) {
-//   const key = `${plant.x}${plant.y}`;
-//   const plantMesh = plantMeshes.get(key);
-//   if (plantMesh) {
-//     plantMesh.material.color.set(getPlantColor(plant));
-//   }
-// }
+function removePlantMesh(x, y) {
+  const key = `${x}${y}`;
+  const plantMesh = plantMeshes.get(key);
+  if (plantMesh) {
+    scene.remove(plantMesh);
+    plantMeshes.delete(key);
+  }
+}
 
-// function removePlantMesh(x, y) {
-//   const key = `${x}${y}`;
-//   const plantMesh = plantMeshes.get(key);
-//   if (plantMesh) {
-//     scene.remove(plantMesh);
-//     plantMeshes.delete(key);
-//   }
-// }
+function getPlantColor(plant) {
+  // Change color based on growth stage
+  const colors = [0xADFF2F, 0x7CFC00, 0x32CD32, 0x006400]; // Light green to dark green
+  return colors[plant.growthStage] || 0x32CD32;
+}
 
-// function getPlantColor(plant) {
-//   // Change color based on growth stage
-//   const colors = [0xADFF2F, 0x7CFC00, 0x32CD32, 0x006400]; // Light green to dark green
-//   return colors[plant.growthStage] || 0x32CD32;
-// }
+function onRendererClick(event) {
+  // Calculate mouse position in normalized device coordinates (-1 to +1)
+  const rect = renderer.domElement.getBoundingClientRect();
+  const mouse = new THREE.Vector2(
+    ((event.clientX - rect.left) / rect.width) * 2 - 1,
+    -((event.clientY - rect.top) / rect.height) * 2 + 1
+  );
 
-// function onRendererClick(event) {
-//   // Calculate mouse position in normalized device coordinates (-1 to +1)
-//   const rect = renderer.domElement.getBoundingClientRect();
-//   const mouse = new THREE.Vector2(
-//     ((event.clientX - rect.left) / rect.width) * 2 - 1,
-//     -((event.clientY - rect.top) / rect.height) * 2 + 1
-//   );
+  // Raycaster
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(mouse, camera);
 
-//   // Raycaster
-//   const raycaster = new THREE.Raycaster();
-//   raycaster.setFromCamera(mouse, camera);
+  // Intersect with grid
+  const intersects = raycaster.intersectObject(gridGroup.children[0]);
+  if (intersects.length > 0) {
+    const intersect = intersects[0];
+    const point = intersect.point;
 
-//   // Intersect with grid
-//   const intersects = raycaster.intersectObject(gridGroup.children[0]);
-//   if (intersects.length > 0) {
-//     const intersect = intersects[0];
-//     const point = intersect.point;
+    const gridX = Math.floor(point.x);
+    const gridY = Math.floor(point.z);
 
-//     const gridX = Math.floor(point.x);
-//     const gridY = Math.floor(point.z);
+    farmTheLand(gridX, gridY);
+  }
+}
 
-//     farmTheLand(gridX, gridY);
-//   }
-// }
-
-// renderer.domElement.addEventListener("click", onRendererClick);
+renderer.domElement.addEventListener("click", onRendererClick);
 
 // //Renderer
 // const canvas = document.querySelector("#three-canvas");
