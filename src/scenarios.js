@@ -5,5 +5,6 @@ tutorial:
     - corn
     - bean
   win_conditions:
-    - [bean, min, 10]
+    - plants: 10
+      time: 20
 `;
