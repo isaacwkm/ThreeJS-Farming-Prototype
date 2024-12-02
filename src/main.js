@@ -10,6 +10,8 @@ import { yamlString } from "./scenarios.js";
 let width;
 let height;
 const availablePlants = [];
+let plantsRequirement = {plants: 0, time: 0};
+
 const plantsOnGrid = new Map();
 
 function scenarioLoader(scenario) {
@@ -23,7 +25,7 @@ function scenarioLoader(scenario) {
       throw new Error("Invalid Scenario: Plant unrecognized");
   }
 
-
+  plantsRequirement = scenario.win_conditions[0];
 }
 
 const config = YAML.load(yamlString);
@@ -74,15 +76,15 @@ function createTurnCommand(grid) {
       for (const [key, plant] of plantsOnGrid) {
         data.growthMap.set(key, plant.growthStage);
         plant.grow(grid.getSunAt(plant.x, plant.y), grid.getWaterAt(plant.x, plant.y), plantsOnGrid);
-        updatePlantMesh(plant);
       }
+      currentDay++;
     },
     undo() {
       grid.deserialize(data.before_grid);
       for (const [key, plant] of plantsOnGrid) {
         plant.growthStage = data.growthMap.get(key);
-        updatePlantMesh(plant);
       }
+      currentDay--;
     },
   };
 }
@@ -229,26 +231,17 @@ function autosavePrompt() {
 }
 
 function checkScenarioWin() {
-  return reapFull >= 20;
-}
-
-function checkWinCondition() {
-  if (checkScenarioWin() && !document.getElementById("winner")) {
-    document.body.appendChild(winText);
-  } else if (!checkScenarioWin() && document.getElementById("winner")) {
-    document.getElementById("winner").remove();
-  }
-  createSave("autosave");
+  const win = reapFull >= plantsRequirement.plants && currentDay <= plantsRequirement.time;
+  const lose = currentDay > plantsRequirement.time;
+  if (win)
+    notify("win");
+  else if (lose)
+    notify("lose");
 }
 
 function notify(name) {
   window.dispatchEvent(new Event(name));
 }
-
-// Win Text
-const winText = document.createElement("h1");
-winText.innerHTML = "You win!";
-winText.id = "winner";
 
 // THREE.js Setup
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -259,10 +252,10 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb); // Sky blue
 
 const camera = new THREE.PerspectiveCamera(
-  60, // FOV
-  window.innerWidth / window.innerHeight,
-  0.1, // Near clipping
-  1000 // Far clipping
+    60, // FOV
+    window.innerWidth / window.innerHeight,
+    0.1, // Near clipping
+    1000 // Far clipping
 );
 camera.position.set(0, height, width);
 scene.add(camera);
@@ -299,8 +292,8 @@ function createGrid(gridWidth, gridHeight) {
     }
   
     return gridGroup;
-  }
-  
+}
+
 function updatePlayerPosition() {
     playerMesh.position.set(playerCharacter.x, 0.5, playerCharacter.y);
     camera.position.set(0, height , width + playerCharacter.y);
@@ -323,7 +316,7 @@ window.addEventListener("keydown", (e) => {
 
 // USE THIS FOR SCENE CHANGES
 window.addEventListener("scene-changed", () => {
-    checkWinCondition();
+    checkScenarioWin();
     updatePlayerPosition();
 })
 
