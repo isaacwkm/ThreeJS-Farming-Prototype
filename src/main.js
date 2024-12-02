@@ -265,12 +265,8 @@ function checkScenarioWin() {
 }
 
 function notify(name) {
-  canvas.dispatchEvent(new Event(name));
+    window.dispatchEvent(new Event(name));
 }
-
-window.addEventListener("keydown", (e) => {
-  handleKeyboardInput(e.key);
-})
 
 // THREE.js Setup
 const renderer = new THREE.WebGLRenderer({ antialias: true });
