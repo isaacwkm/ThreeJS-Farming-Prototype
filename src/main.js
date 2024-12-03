@@ -172,6 +172,7 @@ function handleKeyboardInput(key) {
   manageCommand(command);
 }
 
+
 const CommandContainer = document.createElement("div2");
 document.body.appendChild(CommandContainer);
 
@@ -181,15 +182,15 @@ function drawCommandButton(label, command) {
     button.addEventListener("click", () => {
       console.log(`Selected: ${label}`);
       manageCommand(command);
-      console.log(command);
     });
     return button;
 }
-
+/*
 CommandContainer.appendChild(drawCommandButton("⬅️", createMoveCommand(playerCharacter, -1, 0)));
 CommandContainer.appendChild(drawCommandButton("➡️", createMoveCommand(playerCharacter, 1, 0)));
 CommandContainer.appendChild(drawCommandButton("⬆️", createMoveCommand(playerCharacter, 0, -1)));
 CommandContainer.appendChild(drawCommandButton("⬇️", createMoveCommand(playerCharacter, 0, 1)));
+*/
 CommandContainer.appendChild(drawCommandButton("Next Day", createTurnCommand(grid)));
 
 
