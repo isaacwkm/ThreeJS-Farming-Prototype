@@ -5,7 +5,7 @@
 No major changes were made.
 
 ## F2.a
-12/1/2024 -
+12/1/2024 - Scenarios can now be loaded at compile time through an external DSL.
 
 ## F2.b
 11/30/2024 - Plants are now modified to use internal plant types in order to classify unique growth rules. These types are compiled from internal definitions written in a domain-specific language within JavaScript. The following code snippet provides the internal definition for an onion plant: </br>
@@ -22,7 +22,7 @@ function onion($) {
     })
 }
 ```
-The basic use of this DSL lets you define the name and emoji that a specific plant type uses. The DSL also lets you define the growth conditions for each type given their current context. This context may include the plant itself, the water and sun values for its cell, and a presumed array of its neighboring plants. In this example, the plant will grow if its water is at least two and it has at least two neighbors, but no more than one neighbor of the same type.
+The basic use of this DSL lets you define the name and emoji that a specific plant type uses. The DSL also lets you define the growth conditions for each type given their current context. This context may include the plant itself, the water and sun values for its cell, and a presumed array of its neighboring plants. In this example, the plant will grow if its water is at least two and it has at least two neighbors, but no more than one neighbor of the same type. The expressiveness of the host language gives us more flexibility in defining specific conditions that makes it clear to the writer what those conditions are.
 
 # Devlog Entry - 11/27/2024
 

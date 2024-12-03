@@ -12,7 +12,7 @@ import "./style.css";
 let width;
 let height;
 const availablePlants = [];
-let plantsRequirement = {plants: 0, time: 0};
+let plantsRequirement = { plants: 0, time: 0 };
 const specialEvents = [];
 
 const plantsOnGrid = new Map();
@@ -127,12 +127,12 @@ function createSowCommand(x, y) {
     execute() {
       plantsOnGrid.set(`${x}${y}`, data.plant);
       grid.sowCell(x, y);
-      createPlantMesh(data.plant);
+      MeshManager.createPlantMesh(data.plant);
     },
     undo() {
       plantsOnGrid.delete(`${x}${y}`);
       grid.sowCell(x, y);
-      removePlantMesh(x, y);
+      MeshManager.removePlantMesh(x, y);
     },
   };
 }
@@ -145,7 +145,7 @@ function createReapCommand(x, y) {
       if (data.plant.growthStage == 3)
         adultsHarvested++;
       grid.sowCell(x, y);
-      removePlantMesh(x, y);
+      MeshManager.removePlantMesh(x, y);
       checkScenarioWin();
     },
     undo() {
@@ -153,7 +153,7 @@ function createReapCommand(x, y) {
       if (data.plant.growthStage == 3)
         adultsHarvested--;
       grid.sowCell(x, y);
-      createPlantMesh(data.plant);
+      MeshManager.createPlantMesh(data.plant);
       checkScenarioWin();
     },
   };
@@ -177,13 +177,13 @@ const CommandContainer = document.createElement("div2");
 document.body.appendChild(CommandContainer);
 
 function drawCommandButton(label, command) {
-    const button = document.createElement("button");
-    button.textContent = `${label}`; 
-    button.addEventListener("click", () => {
-      console.log(`Selected: ${label}`);
-      manageCommand(command);
-    });
-    return button;
+  const button = document.createElement("button");
+  button.textContent = `${label}`;
+  button.addEventListener("click", () => {
+    console.log(`Selected: ${label}`);
+    manageCommand(command);
+  });
+  return button;
 }
 /*
 CommandContainer.appendChild(drawCommandButton("⬅️", createMoveCommand(playerCharacter, -1, 0)));
@@ -301,7 +301,7 @@ function checkScenarioWin() {
 }
 
 function notify(name) {
-    window.dispatchEvent(new Event(name));
+  window.dispatchEvent(new Event(name));
 }
 
 // THREE.js Setup
@@ -313,10 +313,10 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb); // Sky blue
 
 const camera = new THREE.PerspectiveCamera(
-    60, // FOV
-    window.innerWidth / window.innerHeight,
-    0.1, // Near clipping
-    1000 // Far clipping
+  60, // FOV
+  window.innerWidth / window.innerHeight,
+  0.1, // Near clipping
+  1000 // Far clipping
 );
 camera.position.set(0, height, width);
 scene.add(camera);
@@ -335,29 +335,29 @@ scene.add(gridGroup);
 camera.lookAt(gridGroup.position);
 
 function createGrid(gridWidth, gridHeight) {
-    const gridGroup = new THREE.Group();
-  
-    for (let i = 0; i < gridWidth; i++) {
-        for (let j = 0; j < gridHeight; j++) {
-            const planeGeometry = new THREE.PlaneGeometry(1, 1);
-            const planeMaterial = new THREE.MeshBasicMaterial({
-                color: 0x228B22,
-                wireframe: true,
-            });
-            const gridPlane = new THREE.Mesh(planeGeometry, planeMaterial);
-            gridPlane.rotation.x = -Math.PI / 2;
-            gridPlane.position.set(i, 0, j);
-            gridGroup.add(gridPlane);
-            //console.log(gridPlane.position);
-        }
+  const gridGroup = new THREE.Group();
+
+  for (let i = 0; i < gridWidth; i++) {
+    for (let j = 0; j < gridHeight; j++) {
+      const planeGeometry = new THREE.PlaneGeometry(1, 1);
+      const planeMaterial = new THREE.MeshBasicMaterial({
+        color: 0x228B22,
+        wireframe: true,
+      });
+      const gridPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+      gridPlane.rotation.x = -Math.PI / 2;
+      gridPlane.position.set(i, 0, j);
+      gridGroup.add(gridPlane);
+      //console.log(gridPlane.position);
     }
-  
-    return gridGroup;
+  }
+
+  return gridGroup;
 }
 
 function updatePlayerPosition() {
-    playerMesh.position.set(playerCharacter.x, 0.5, playerCharacter.y);
-    camera.position.set(0, height , width + playerCharacter.y);
+  playerMesh.position.set(playerCharacter.x, 0.5, playerCharacter.y);
+  camera.position.set(0, height, width + playerCharacter.y);
 }
 
 // Player Rendering
@@ -376,15 +376,15 @@ window.addEventListener("keydown", (e) => {
 });
 
 window.addEventListener("resize", () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
 // USE THIS FOR SCENE CHANGES
 window.addEventListener("scene-changed", () => {
-    checkScenarioWin();
-    updatePlayerPosition();
+  checkScenarioWin();
+  updatePlayerPosition();
 })
 
 
@@ -401,33 +401,36 @@ function animate() {
 animate();
 
 // Helper Functions
-function createPlantMesh(plant) {
-  const plantGeometry = new THREE.ConeGeometry(0.4, 1, 8);
-  const plantMaterial = new THREE.MeshLambertMaterial({ color: getPlantColor(plant) });
-  const plantMesh = new THREE.Mesh(plantGeometry, plantMaterial);
+function PlantMeshManager() {
+  return {
+    createPlantMesh(plant) {
+      const plantGeometry = new THREE.ConeGeometry(0.4, 1, 8);
+      const plantMaterial = new THREE.MeshLambertMaterial({ color: getPlantColor(plant) });
+      const plantMesh = new THREE.Mesh(plantGeometry, plantMaterial);
 
-  plantMesh.position.set(plant.x, 0.5, plant.y);
-  //plantMesh.rotation.x = Math.PI / 2;
-  plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
-  scene.add(plantMesh);
-}
-
-function updatePlantMesh(plant) {
-  const key = `${plant.x}${plant.y}`;
-  const plantMesh = plantMeshes.get(key);
-  if (plantMesh) {
-    plantMesh.material.color.set(getPlantColor(plant));
+      plantMesh.position.set(plant.x, 0.5, plant.y);
+      //plantMesh.rotation.x = Math.PI / 2;
+      plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
+      scene.add(plantMesh);
+    },
+    updatePlantMesh(plant) {
+      const key = `${plant.x}${plant.y}`;
+      const plantMesh = plantMeshes.get(key);
+      if (plantMesh) {
+        plantMesh.material.color.set(getPlantColor(plant));
+      }
+    },
+    removePlantMesh(x, y) {
+      const key = `${x}${y}`;
+      const plantMesh = plantMeshes.get(key);
+      if (plantMesh) {
+        scene.remove(plantMesh);
+        plantMeshes.delete(key);
+      }
+    },
   }
 }
-
-function removePlantMesh(x, y) {
-  const key = `${x}${y}`;
-  const plantMesh = plantMeshes.get(key);
-  if (plantMesh) {
-    scene.remove(plantMesh);
-    plantMeshes.delete(key);
-  }
-}
+const MeshManager = PlantMeshManager();
 
 function getPlantColor(plant) {
   // Change color based on growth stage
@@ -469,7 +472,7 @@ document.body.appendChild(PlantContainer);
 
 function drawPlantButton(emoji, label) {
   const button = document.createElement("button");
-  button.textContent = `${emoji} ${label}`; 
+  button.textContent = `${emoji} ${label}`;
   button.addEventListener("click", () => {
     currentPlantType = label.toLowerCase();
     console.log(`Selected: ${label}`);
@@ -485,29 +488,29 @@ PlantContainer.appendChild(drawPlantButton("🧅", "Onion"));
 
 //Progress Buttons
 const undo = document.createElement("button");
-undo.textContent = "Undo"; 
+undo.textContent = "Undo";
 undo.addEventListener("click", () => {
-    Undo();
+  Undo();
 });
 PlantContainer.appendChild(undo);
 
 const redo = document.createElement("button");
-redo.textContent = "Redo"; 
+redo.textContent = "Redo";
 redo.addEventListener("click", () => {
-    Redo();
+  Redo();
 });
 PlantContainer.appendChild(redo);
 
 const save = document.createElement("button");
-save.textContent = "Save"; 
+save.textContent = "Save";
 save.addEventListener("click", () => {
-    createSave();
+  createSave();
 });
 PlantContainer.appendChild(save);
 
 const load = document.createElement("button");
-load.textContent = "Load"; 
+load.textContent = "Load";
 load.addEventListener("click", () => {
-    listSaves();
+  listSaves();
 });
 PlantContainer.appendChild(load);
