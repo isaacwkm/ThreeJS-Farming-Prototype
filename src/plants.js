@@ -20,7 +20,7 @@ export const allPlantDefinitions = [
     function potato($) {
         $.name("potato");
         $.icon("🥔");
-        $.grow(({ water, neighbors }) => {
+        $.grow(({ water, sun, neighbors }) => {
             const isHappy = neighbors.length <= 2 && water > 2
                 && sun < 5;
             return isHappy;

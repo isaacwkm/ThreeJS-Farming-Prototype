@@ -496,12 +496,12 @@ PlantContainer.appendChild(load);
 const CommandContainer = document.createElement("div2");
 document.body.appendChild(CommandContainer);
 
-function drawCommandButton(label, command) {
+function drawCommandButton(label, callback) {
   const button = document.createElement("button");
   button.textContent = `${label}`;
   button.addEventListener("click", () => {
     console.log(`Selected: ${label}`);
-    manageCommand(command);
+    callback();
   });
   return button;
 }
@@ -511,6 +511,6 @@ CommandContainer.appendChild(drawCommandButton("➡️", createMoveCommand(playe
 CommandContainer.appendChild(drawCommandButton("⬆️", createMoveCommand(playerCharacter, 0, -1)));
 CommandContainer.appendChild(drawCommandButton("⬇️", createMoveCommand(playerCharacter, 0, 1)));
 */
-CommandContainer.appendChild(drawCommandButton("Next Day", createTurnCommand(grid)));
+CommandContainer.appendChild(drawCommandButton("Next Day", () => handleKeyboardInput("Enter")));
 
 autosavePrompt();

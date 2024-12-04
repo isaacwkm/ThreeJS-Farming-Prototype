@@ -1,11 +1,27 @@
-# Devlog Entry - 12/2/2024
+# Devlog Entry - 12/4/2024
 
 ## How we satisfied the requirements
 ## F0 and F1
 No major changes were made.
 
 ## F2.a
-12/1/2024 - Scenarios can now be loaded at compile time through an external DSL.
+12/1/2024 - Scenarios can now be loaded at compile time through an external DSL. This DSL is based off of YAML and allows designers to specify the initial conditions for each scenario and the conditions needed to complete them. The DSL can also describe special events that happen at specific times within the game. For instance, the following snippet describes the "drought" scenario: </br>
+```
+drought:
+  grid_size: [10, 5]
+  available_plants:
+    - corn
+    - potato
+  win_conditions:
+    - plants: 20
+      time: 30
+  special_events:
+    - description: "Drought"
+      day: 10
+      effects:
+        - ["water", 0]
+        - ["sun", 20]
+```
 
 ## F2.b
 11/30/2024 - Plants are now modified to use internal plant types in order to classify unique growth rules. These types are compiled from internal definitions written in a domain-specific language within JavaScript. The following code snippet provides the internal definition for an onion plant: </br>
@@ -23,6 +39,10 @@ function onion($) {
 }
 ```
 The basic use of this DSL lets you define the name and emoji that a specific plant type uses. The DSL also lets you define the growth conditions for each type given their current context. This context may include the plant itself, the water and sun values for its cell, and a presumed array of its neighboring plants. In this example, the plant will grow if its water is at least two and it has at least two neighbors, but no more than one neighbor of the same type. The expressiveness of the host language gives us more flexibility in defining specific conditions that makes it clear to the writer what those conditions are.
+
+## F2.c
+
+## Reflection
 
 # Devlog Entry - 11/27/2024
 

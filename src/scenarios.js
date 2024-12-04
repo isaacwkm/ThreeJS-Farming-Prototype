@@ -1,6 +1,6 @@
 export const yamlString = `
 tutorial:
-  grid_size: [5, 10]
+  grid_size: [5, 5]
   available_plants:
     - bean
     - potato
@@ -8,7 +8,7 @@ tutorial:
     - plants: 10
       time: 20
 drought:
-  grid_size: [6, 6]
+  grid_size: [10, 5]
   available_plants:
     - corn
     - potato
