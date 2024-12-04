@@ -358,6 +358,7 @@ window.addEventListener("scene-changed", () => {
   updateMeshes();
   updatePlayerPosition();
   checkScenarioWin();
+  createSave("autosave");
 })
 
 // Initialize Game
@@ -511,3 +512,5 @@ CommandContainer.appendChild(drawCommandButton("⬆️", createMoveCommand(playe
 CommandContainer.appendChild(drawCommandButton("⬇️", createMoveCommand(playerCharacter, 0, 1)));
 */
 CommandContainer.appendChild(drawCommandButton("Next Day", createTurnCommand(grid)));
+
+autosavePrompt();
