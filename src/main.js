@@ -127,12 +127,10 @@ function createSowCommand(x, y) {
     execute() {
       plantsOnGrid.set(`${x}${y}`, data.plant);
       grid.sowCell(x, y);
-      MeshManager.createPlantMesh(data.plant);
     },
     undo() {
       plantsOnGrid.delete(`${x}${y}`);
       grid.sowCell(x, y);
-      MeshManager.removePlantMesh(x, y);
     },
   };
 }
@@ -145,16 +143,12 @@ function createReapCommand(x, y) {
       if (data.plant.growthStage == 3)
         adultsHarvested++;
       grid.sowCell(x, y);
-      MeshManager.removePlantMesh(x, y);
-      checkScenarioWin();
     },
     undo() {
       plantsOnGrid.set(`${x}${y}`, data.plant);
       if (data.plant.growthStage == 3)
         adultsHarvested--;
       grid.sowCell(x, y);
-      MeshManager.createPlantMesh(data.plant);
-      checkScenarioWin();
     },
   };
 }
@@ -171,28 +165,6 @@ function handleKeyboardInput(key) {
   const command = inputMap[key];
   manageCommand(command);
 }
-
-
-const CommandContainer = document.createElement("div2");
-document.body.appendChild(CommandContainer);
-
-function drawCommandButton(label, command) {
-  const button = document.createElement("button");
-  button.textContent = `${label}`;
-  button.addEventListener("click", () => {
-    console.log(`Selected: ${label}`);
-    manageCommand(command);
-  });
-  return button;
-}
-/*
-CommandContainer.appendChild(drawCommandButton("⬅️", createMoveCommand(playerCharacter, -1, 0)));
-CommandContainer.appendChild(drawCommandButton("➡️", createMoveCommand(playerCharacter, 1, 0)));
-CommandContainer.appendChild(drawCommandButton("⬆️", createMoveCommand(playerCharacter, 0, -1)));
-CommandContainer.appendChild(drawCommandButton("⬇️", createMoveCommand(playerCharacter, 0, 1)));
-*/
-CommandContainer.appendChild(drawCommandButton("Next Day", createTurnCommand(grid)));
-
 
 function farmTheLand(x, y) {
   redoStack.splice(0, redoStack.length);
@@ -383,11 +355,10 @@ window.addEventListener("resize", () => {
 
 // USE THIS FOR SCENE CHANGES
 window.addEventListener("scene-changed", () => {
-  checkScenarioWin();
+  updateMeshes();
   updatePlayerPosition();
+  checkScenarioWin();
 })
-
-
 
 // Initialize Game
 //autosavePrompt();
@@ -420,17 +391,20 @@ function PlantMeshManager() {
         plantMesh.material.color.set(getPlantColor(plant));
       }
     },
-    removePlantMesh(x, y) {
-      const key = `${x}${y}`;
-      const plantMesh = plantMeshes.get(key);
-      if (plantMesh) {
-        scene.remove(plantMesh);
-        plantMeshes.delete(key);
-      }
-    },
   }
 }
 const MeshManager = PlantMeshManager();
+
+function updateMeshes() {
+  for (const [key, mesh] of plantMeshes) {
+    scene.remove(mesh);
+    plantMeshes.delete(key);
+  }
+  for (const [key, plant] of plantsOnGrid) {
+    if (!plantMeshes.has(key))
+      MeshManager.createPlantMesh(plant)
+  }
+}
 
 function getPlantColor(plant) {
   // Change color based on growth stage
@@ -504,7 +478,8 @@ PlantContainer.appendChild(redo);
 const save = document.createElement("button");
 save.textContent = "Save";
 save.addEventListener("click", () => {
-  createSave();
+  const key = prompt("Enter save name");
+  createSave(key);
 });
 PlantContainer.appendChild(save);
 
@@ -512,5 +487,27 @@ const load = document.createElement("button");
 load.textContent = "Load";
 load.addEventListener("click", () => {
   listSaves();
+  const key = prompt("Enter save name");
+  loadSave(key);
 });
 PlantContainer.appendChild(load);
+
+const CommandContainer = document.createElement("div2");
+document.body.appendChild(CommandContainer);
+
+function drawCommandButton(label, command) {
+  const button = document.createElement("button");
+  button.textContent = `${label}`;
+  button.addEventListener("click", () => {
+    console.log(`Selected: ${label}`);
+    manageCommand(command);
+  });
+  return button;
+}
+/*
+CommandContainer.appendChild(drawCommandButton("⬅️", createMoveCommand(playerCharacter, -1, 0)));
+CommandContainer.appendChild(drawCommandButton("➡️", createMoveCommand(playerCharacter, 1, 0)));
+CommandContainer.appendChild(drawCommandButton("⬆️", createMoveCommand(playerCharacter, 0, -1)));
+CommandContainer.appendChild(drawCommandButton("⬇️", createMoveCommand(playerCharacter, 0, 1)));
+*/
+CommandContainer.appendChild(drawCommandButton("Next Day", createTurnCommand(grid)));
