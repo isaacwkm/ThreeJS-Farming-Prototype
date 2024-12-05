@@ -389,135 +389,103 @@ function animate() {
 
 animate();
 
+const plantSpecs = {
+  bean: [
+    {
+      geometry: () => new THREE.SphereGeometry(0.05, 8, 8),
+      material: () => new THREE.MeshLambertMaterial({ color: 0x3d3232 }),
+      yOffset: 0,
+    },
+    {
+      geometry: () => new THREE.CylinderGeometry(0.01, 0.01, 0.5, 8),
+      material: (plant) => new THREE.MeshLambertMaterial({ color: getPlantColor(plant) }),
+      yOffset: 0.25,
+      rotation: true,
+    },
+    {
+      geometry: () => new THREE.CylinderGeometry(0.1, 0.1, 0.05, 8),
+      material: (plant) => new THREE.MeshLambertMaterial({ color: getPlantColor(plant) }),
+      yOffset: 0.5,
+      rotation: true,
+    },
+  ],
+  corn: [
+    {
+      geometry: () => new THREE.ConeGeometry(0.4, 1, 8),
+      material: (plant) => new THREE.MeshLambertMaterial({ color: getPlantColor(plant) }),
+      yOffset: 0,
+      rotation: true,
+    },
+    {
+      geometry: () => new THREE.CapsuleGeometry(0.2, 0.5, 4, 6),
+      material: () => new THREE.MeshLambertMaterial({ color: 0xffd700 }),
+      yOffset: 0.75,
+      rotation: true,
+    },
+  ],
+  potato: [
+    {
+      geometry: () => new THREE.SphereGeometry(0.25, 8, 8),
+      material: () => new THREE.MeshLambertMaterial({ color: 0xa2a27d }),
+      yOffset: 0,
+    },
+    {
+      geometry: () => new THREE.CylinderGeometry(0.05, 0.05, 0.5, 8),
+      material: (plant) => new THREE.MeshLambertMaterial({ color: getPlantColor(plant) }),
+      yOffset: 0.25,
+      rotation: true,
+    },
+    {
+      geometry: () => new THREE.ConeGeometry(0.1, 0.25, 8),
+      material: (plant) => new THREE.MeshLambertMaterial({ color: getPlantColor(plant) }),
+      yOffset: 0.5,
+      rotation: true,
+    },
+  ],
+  onion: [
+    {
+      geometry: () => new THREE.SphereGeometry(0.2, 8, 8),
+      material: () => new THREE.MeshLambertMaterial({ color: 0x542346 }),
+      yOffset: 0,
+    },
+    {
+      geometry: () => new THREE.ConeGeometry(0.1, 0.5, 8),
+      material: (plant) => new THREE.MeshLambertMaterial({ color: getPlantColor(plant) }),
+      yOffset: 0.25,
+      rotation: true,
+    },
+  ]
+}
+
 // Helper Functions
 //Plant Model Directory
-function createCornMesh(plant) {
-  const plantGeometry = new THREE.ConeGeometry(0.4, 1, 8);
-  const plantMaterial = new THREE.MeshLambertMaterial({
-    color: getPlantColor(plant),
-  });
-  const stalkMesh = new THREE.Mesh(plantGeometry, plantMaterial);
-
-  const plantGeometry2 = new THREE.CapsuleGeometry(0.2, .5, 4, 6);
-  const plantMaterial2 = new THREE.MeshLambertMaterial({
-    color: 0xffd700,
-  });
-  const cornMesh = new THREE.Mesh(plantGeometry2, plantMaterial2);
-
-  stalkMesh.position.set(plant.x, 0, plant.y);
-  stalkMesh.rotation.x = -Math.PI;
-  cornMesh.position.set(plant.x, 0.75, plant.y);
-  cornMesh.rotation.x = -Math.PI;
-
-  const plantMesh = new THREE.Group();
-  plantMesh.add(stalkMesh);
-  plantMesh.add(cornMesh);
-  plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
-  scene.add(plantMesh);
-}
-
-function createBeanMesh(plant) {
-  const plantGeometry = new THREE.SphereGeometry(0.05, 8, 8);
-  const plantMaterial = new THREE.MeshLambertMaterial({
-    color: 0x3d3232,
-  });
-  const beanMesh = new THREE.Mesh(plantGeometry, plantMaterial);
-
-  const plantGeometry2 = new THREE.CylinderGeometry(0.01, 0.01, 0.5, 8);
-  const plantGeometry3 = new THREE.CylinderGeometry(0.1, 0.1, 0.05, 8);
-  const plantMaterial2 = new THREE.MeshLambertMaterial({
-    color: getPlantColor(plant),
-  });
-  const stalkMesh = new THREE.Mesh(plantGeometry2, plantMaterial2);
-  const leafMesh = new THREE.Mesh(plantGeometry3, plantMaterial2);
-  beanMesh.position.set(plant.x, 0, plant.y);
-  stalkMesh.position.set(plant.x, 0.25, plant.y);
-  stalkMesh.rotation.x = -Math.PI;
-  leafMesh.position.set(plant.x, 0.50, plant.y);
-  leafMesh.rotation.x = -Math.PI;
-
-  const plantMesh = new THREE.Group();
-  plantMesh.add(beanMesh);
-  plantMesh.add(stalkMesh);
-  plantMesh.add(leafMesh);
-  plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
-  scene.add(plantMesh);
-}
-
-function createPotatoMesh(plant) {
-  const plantGeometry = new THREE.SphereGeometry(0.25, 8, 8);
-  const plantMaterial = new THREE.MeshLambertMaterial({
-    color: 0xa2a27d,
-  });
-  const potatoMesh = new THREE.Mesh(plantGeometry, plantMaterial);
-
-  const plantGeometry2 = new THREE.CylinderGeometry(0.05, 0.05, 0.5, 8);
-  const plantGeometry3 = new THREE.ConeGeometry(0.1, 0.25, 8);
-  const plantMaterial2 = new THREE.MeshLambertMaterial({
-    color: getPlantColor(plant),
-  });
-  const stalkMesh = new THREE.Mesh(plantGeometry2, plantMaterial2);
-  const leafMesh = new THREE.Mesh(plantGeometry3, plantMaterial2);
-  potatoMesh.position.set(plant.x, 0, plant.y);
-  stalkMesh.position.set(plant.x, 0.25, plant.y);
-  stalkMesh.rotation.x = -Math.PI;
-  leafMesh.position.set(plant.x, 0.50, plant.y);
-  leafMesh.rotation.x = -Math.PI;
-
-  const plantMesh = new THREE.Group();
-  plantMesh.add(potatoMesh);
-  plantMesh.add(stalkMesh);
-  plantMesh.add(leafMesh);
-  plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
-  scene.add(plantMesh);
-}
-
-function createOnionMesh(plant) {
-  const plantGeometry = new THREE.SphereGeometry(0.20, 8, 8);
-  const plantMaterial = new THREE.MeshLambertMaterial({
-    color: 0x542346,
-  });
-  const onionMesh = new THREE.Mesh(plantGeometry, plantMaterial);
-
-  const plantGeometry2 = new THREE.ConeGeometry(0.1, 0.5, 8);
-  const plantMaterial2 = new THREE.MeshLambertMaterial({
-    color: getPlantColor(plant),
-  });
-  const stalkMesh = new THREE.Mesh(plantGeometry2, plantMaterial2);
-  onionMesh.position.set(plant.x, 0, plant.y);
-  stalkMesh.position.set(plant.x, 0.25, plant.y);
-  stalkMesh.rotation.x = -Math.PI;
-
-  const plantMesh = new THREE.Group();
-  plantMesh.add(onionMesh);
-  plantMesh.add(stalkMesh);
-  plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
-  scene.add(plantMesh);
-}
 
 // Helper Functions
 function PlantMeshManager() {
   return {
-    createPlantMesh(plant) {
-      if (plant.type == "bean") {
-        createBeanMesh(plant);
-      }
-      else if (plant.type == "corn") {
-        createCornMesh(plant);
-      }
-      else if (plant.type == "potato") {
-        createPotatoMesh(plant);
-      }
-      else if (plant.type == "onion") {
-        createOnionMesh(plant);
-      }
+    createMeshGroup(plant, specs) {
+      const plantMesh = new THREE.Group();
+
+      specs.forEach((part) => {
+        const geometry = part.geometry();
+        const material = part.material(plant);
+        const mesh = new THREE.Mesh(geometry, material);
+
+        mesh.position.set(plant.x, part.yOffset, plant.y);
+        if (part.rotation)
+          mesh.rotation.x = -Math.PI;
+
+        plantMesh.add(mesh);
+      })
+
+      plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
+      scene.add(plantMesh);
     },
-    updatePlantMesh(plant) {
-      const key = `${plant.x}${plant.y}`;
-      const plantMesh = plantMeshes.get(key);
-      if (plantMesh) {
-        plantMesh.material.color.set(getPlantColor(plant));
-      }
+    createPlantMesh(plant) {
+      const specs = plantSpecs[plant.type];
+      if (!specs)
+        throw new Error(`Unknown plant type: ${plant.type}`);
+      this.createMeshGroup(plant, specs);
     },
   };
 }
@@ -665,7 +633,6 @@ function drawDayCounter() {
 
   // Add a listener for the dayChanged event
   window.addEventListener("dayChanged", () => {
-    console.log("Day incremented");
     dayCounterText.textContent = `Current Day: ${currentDay}`;
   });
 
