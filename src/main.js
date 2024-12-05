@@ -1,10 +1,12 @@
-import * as THREE from "/node_modules/three/build/three.module.js";
+import * as THREE from "three";
 import YAML from "js-yaml";
 
 import { Grid } from "./models.js";
 import { Player } from "./models.js";
 import { Plant } from "./models.js";
 import { yamlString } from "./scenarios.js";
+
+import PlantMeshManager from "./plantMeshManager.js";
 
 import "./style.css";
 
@@ -355,9 +357,6 @@ const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
 scene.add(playerMesh);
 playerMesh.position.set(0, 0.5, 0);
 
-// Plant Rendering
-const plantMeshes = new Map();
-
 // Event Listeners
 window.addEventListener("keydown", (e) => {
   handleKeyboardInput(e.key);
@@ -378,9 +377,6 @@ window.addEventListener("scene-changed", () => {
   notify("dayChanged");
 });
 
-// Initialize Game
-//autosavePrompt();
-
 // Animation Loop
 function animate() {
   renderer.render(scene, camera);
@@ -389,124 +385,20 @@ function animate() {
 
 animate();
 
-const plantSpecs = {
-  bean: [
-    {
-      geometry: () => new THREE.SphereGeometry(0.05, 8, 8),
-      material: () => new THREE.MeshLambertMaterial({ color: 0x3d3232 }),
-      yOffset: 0,
-    },
-    {
-      geometry: () => new THREE.CylinderGeometry(0.01, 0.01, 0.5, 8),
-      material: (plant) => new THREE.MeshLambertMaterial({ color: getPlantColor(plant) }),
-      yOffset: 0.25,
-      rotation: true,
-    },
-    {
-      geometry: () => new THREE.CylinderGeometry(0.1, 0.1, 0.05, 8),
-      material: (plant) => new THREE.MeshLambertMaterial({ color: getPlantColor(plant) }),
-      yOffset: 0.5,
-      rotation: true,
-    },
-  ],
-  corn: [
-    {
-      geometry: () => new THREE.ConeGeometry(0.4, 1, 8),
-      material: (plant) => new THREE.MeshLambertMaterial({ color: getPlantColor(plant) }),
-      yOffset: 0,
-      rotation: true,
-    },
-    {
-      geometry: () => new THREE.CapsuleGeometry(0.2, 0.5, 4, 6),
-      material: () => new THREE.MeshLambertMaterial({ color: 0xffd700 }),
-      yOffset: 0.75,
-      rotation: true,
-    },
-  ],
-  potato: [
-    {
-      geometry: () => new THREE.SphereGeometry(0.25, 8, 8),
-      material: () => new THREE.MeshLambertMaterial({ color: 0xa2a27d }),
-      yOffset: 0,
-    },
-    {
-      geometry: () => new THREE.CylinderGeometry(0.05, 0.05, 0.5, 8),
-      material: (plant) => new THREE.MeshLambertMaterial({ color: getPlantColor(plant) }),
-      yOffset: 0.25,
-      rotation: true,
-    },
-    {
-      geometry: () => new THREE.ConeGeometry(0.1, 0.25, 8),
-      material: (plant) => new THREE.MeshLambertMaterial({ color: getPlantColor(plant) }),
-      yOffset: 0.5,
-      rotation: true,
-    },
-  ],
-  onion: [
-    {
-      geometry: () => new THREE.SphereGeometry(0.2, 8, 8),
-      material: () => new THREE.MeshLambertMaterial({ color: 0x542346 }),
-      yOffset: 0,
-    },
-    {
-      geometry: () => new THREE.ConeGeometry(0.1, 0.5, 8),
-      material: (plant) => new THREE.MeshLambertMaterial({ color: getPlantColor(plant) }),
-      yOffset: 0.25,
-      rotation: true,
-    },
-  ]
-}
-
 // Helper Functions
-//Plant Model Directory
 
-// Helper Functions
-function PlantMeshManager() {
-  return {
-    createMeshGroup(plant, specs) {
-      const plantMesh = new THREE.Group();
-
-      specs.forEach((part) => {
-        const geometry = part.geometry();
-        const material = part.material(plant);
-        const mesh = new THREE.Mesh(geometry, material);
-
-        mesh.position.set(plant.x, part.yOffset, plant.y);
-        if (part.rotation)
-          mesh.rotation.x = -Math.PI;
-
-        plantMesh.add(mesh);
-      })
-
-      plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
-      scene.add(plantMesh);
-    },
-    createPlantMesh(plant) {
-      const specs = plantSpecs[plant.type];
-      if (!specs)
-        throw new Error(`Unknown plant type: ${plant.type}`);
-      this.createMeshGroup(plant, specs);
-    },
-  };
-}
-const MeshManager = PlantMeshManager();
+const MeshManager = new PlantMeshManager(scene);
 
 function updateMeshes() {
-  for (const [key, mesh] of plantMeshes) {
+  for (const [key, mesh] of MeshManager.plantMeshes) {
     scene.remove(mesh);
-    plantMeshes.delete(key);
+    MeshManager.plantMeshes.delete(key);
   }
   for (const [key, plant] of plantsOnGrid) {
-    if (!plantMeshes.has(key)) {
+    if (!MeshManager.plantMeshes.has(key)) {
       MeshManager.createPlantMesh(plant);
     }
   }
-}
-
-function getPlantColor(plant) {
-  // Change color based on growth stage
-  const colors = [0xADFF2F, 0x7CFC00, 0x32CD32, 0x006400]; // Light green to dark green
-  return colors[plant.growthStage] || 0x32CD32;
 }
 
 function onRendererClick(event) {
