@@ -290,7 +290,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1, // Near clipping
   1000 // Far clipping
 );
-camera.position.set(0, height, 0);
+camera.position.set(0, height, 5);
 scene.add(camera);
 
 // Lighting
@@ -328,7 +328,7 @@ function createGrid(gridWidth, gridHeight) {
 
 function updatePlayerPosition() {
   playerMesh.position.set(playerCharacter.x, 0.5, playerCharacter.y);
-  camera.position.set(playerCharacter.x, height, playerCharacter.y);
+  camera.position.set(playerCharacter.x, height, playerCharacter.y + 5);
 }
 
 // Player Rendering
