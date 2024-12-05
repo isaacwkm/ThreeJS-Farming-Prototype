@@ -290,7 +290,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1, // Near clipping
   1000 // Far clipping
 );
-camera.position.set(0, height, width);
+camera.position.set(0, height, 0);
 scene.add(camera);
 
 // Lighting
@@ -320,7 +320,6 @@ function createGrid(gridWidth, gridHeight) {
       gridPlane.rotation.x = -Math.PI / 2;
       gridPlane.position.set(i, 0, j);
       gridGroup.add(gridPlane);
-      //console.log(gridPlane.position);
     }
   }
 
@@ -329,7 +328,7 @@ function createGrid(gridWidth, gridHeight) {
 
 function updatePlayerPosition() {
   playerMesh.position.set(playerCharacter.x, 0.5, playerCharacter.y);
-  camera.position.set(0, height, width + playerCharacter.y);
+  camera.position.set(playerCharacter.x, height, playerCharacter.y);
 }
 
 // Player Rendering
@@ -381,7 +380,6 @@ function PlantMeshManager() {
       const plantMesh = new THREE.Mesh(plantGeometry, plantMaterial);
 
       plantMesh.position.set(plant.x, 0.5, plant.y);
-      //plantMesh.rotation.x = Math.PI / 2;
       plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
       scene.add(plantMesh);
     },
@@ -430,9 +428,10 @@ function onRendererClick(event) {
   if (intersects.length > 0) {
     const intersect = intersects[0];
     const point = intersect.point;
+    console.log(point);
 
-    const gridX = Math.floor(point.x);
-    const gridY = Math.floor(point.z);
+    const gridX = Math.round(point.x);
+    const gridY = Math.round(point.z);
 
     console.log(`Clicked Grid Tile: (${gridX}, ${gridY})`);
 
@@ -505,12 +504,12 @@ function drawCommandButton(label, callback) {
   });
   return button;
 }
-/*
-CommandContainer.appendChild(drawCommandButton("⬅️", createMoveCommand(playerCharacter, -1, 0)));
-CommandContainer.appendChild(drawCommandButton("➡️", createMoveCommand(playerCharacter, 1, 0)));
-CommandContainer.appendChild(drawCommandButton("⬆️", createMoveCommand(playerCharacter, 0, -1)));
-CommandContainer.appendChild(drawCommandButton("⬇️", createMoveCommand(playerCharacter, 0, 1)));
-*/
+
+CommandContainer.appendChild(drawCommandButton("⬅️", () => handleKeyboardInput("ArrowLeft")));
+CommandContainer.appendChild(drawCommandButton("➡️", () => handleKeyboardInput("ArrowRight")));
+CommandContainer.appendChild(drawCommandButton("⬆️", () => handleKeyboardInput("ArrowUp")));
+CommandContainer.appendChild(drawCommandButton("⬇️", () => handleKeyboardInput("ArrowDown")));
+
 CommandContainer.appendChild(drawCommandButton("Next Day", () => handleKeyboardInput("Enter")));
 
 autosavePrompt();
