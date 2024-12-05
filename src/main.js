@@ -14,6 +14,7 @@ let height;
 const availablePlants = [];
 let plantsRequirement = { plants: 0, time: 0 };
 const specialEvents = [];
+let plantID = 0;
 
 const plantsOnGrid = new Map();
 
@@ -331,7 +332,7 @@ function createGrid(gridWidth, gridHeight) {
       const planeGeometry = new THREE.PlaneGeometry(1, 1);
       const planeMaterial = new THREE.MeshBasicMaterial({
         color: 0x228B22,
-        wireframe: true,
+        wireframe: false,
       });
       const gridPlane = new THREE.Mesh(planeGeometry, planeMaterial);
       gridPlane.rotation.x = -Math.PI / 2;
@@ -390,18 +391,127 @@ function animate() {
 animate();
 
 // Helper Functions
+//Plant Model Directory
+function createCornMesh(plant) {
+  const plantGeometry = new THREE.ConeGeometry(0.4, 1, 8);
+  const plantMaterial = new THREE.MeshLambertMaterial({
+    color: getPlantColor(plant),
+  });
+  const stalkMesh = new THREE.Mesh(plantGeometry, plantMaterial);
+
+  const plantGeometry2 = new THREE.CapsuleGeometry(0.2, .5, 4, 6);
+  const plantMaterial2 = new THREE.MeshLambertMaterial({
+    color: 0xffd700,
+  });
+  const cornMesh = new THREE.Mesh(plantGeometry2, plantMaterial2);
+
+  stalkMesh.position.set(plant.x, 0, plant.y);
+  stalkMesh.rotation.x = -Math.PI;
+  cornMesh.position.set(plant.x, 0.75, plant.y);
+  cornMesh.rotation.x = -Math.PI;
+
+  const plantMesh = new THREE.Group();
+  plantMesh.add(stalkMesh);
+  plantMesh.add(cornMesh);
+  plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
+  scene.add(plantMesh);
+}
+
+function createBeanMesh(plant) {
+  const plantGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+  const plantMaterial = new THREE.MeshLambertMaterial({
+    color: 0x3d3232,
+  });
+  const beanMesh = new THREE.Mesh(plantGeometry, plantMaterial);
+
+  const plantGeometry2 = new THREE.CylinderGeometry(0.01, 0.01, 0.5, 8);
+  const plantGeometry3 = new THREE.CylinderGeometry(0.1, 0.1, 0.05, 8);
+  const plantMaterial2 = new THREE.MeshLambertMaterial({
+    color: getPlantColor(plant),
+  });
+  const stalkMesh = new THREE.Mesh(plantGeometry2, plantMaterial2);
+  const leafMesh = new THREE.Mesh(plantGeometry3, plantMaterial2);
+  beanMesh.position.set(plant.x, 0, plant.y);
+  stalkMesh.position.set(plant.x, 0.25, plant.y);
+  stalkMesh.rotation.x = -Math.PI;
+  leafMesh.position.set(plant.x, 0.50, plant.y);
+  leafMesh.rotation.x = -Math.PI;
+
+  const plantMesh = new THREE.Group();
+  plantMesh.add(beanMesh);
+  plantMesh.add(stalkMesh);
+  plantMesh.add(leafMesh);
+  plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
+  scene.add(plantMesh);
+}
+
+function createPotatoMesh(plant) {
+  const plantGeometry = new THREE.SphereGeometry(0.25, 8, 8);
+  const plantMaterial = new THREE.MeshLambertMaterial({
+    color: 0xa2a27d,
+  });
+  const potatoMesh = new THREE.Mesh(plantGeometry, plantMaterial);
+
+  const plantGeometry2 = new THREE.CylinderGeometry(0.05, 0.05, 0.5, 8);
+  const plantGeometry3 = new THREE.ConeGeometry(0.1, 0.25, 8);
+  const plantMaterial2 = new THREE.MeshLambertMaterial({
+    color: getPlantColor(plant),
+  });
+  const stalkMesh = new THREE.Mesh(plantGeometry2, plantMaterial2);
+  const leafMesh = new THREE.Mesh(plantGeometry3, plantMaterial2);
+  potatoMesh.position.set(plant.x, 0, plant.y);
+  stalkMesh.position.set(plant.x, 0.25, plant.y);
+  stalkMesh.rotation.x = -Math.PI;
+  leafMesh.position.set(plant.x, 0.50, plant.y);
+  leafMesh.rotation.x = -Math.PI;
+
+  const plantMesh = new THREE.Group();
+  plantMesh.add(potatoMesh);
+  plantMesh.add(stalkMesh);
+  plantMesh.add(leafMesh);
+  plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
+  scene.add(plantMesh);
+}
+
+function createOnionMesh(plant) {
+  const plantGeometry = new THREE.SphereGeometry(0.20, 8, 8);
+  const plantMaterial = new THREE.MeshLambertMaterial({
+    color: 0x542346,
+  });
+  const onionMesh = new THREE.Mesh(plantGeometry, plantMaterial);
+
+  const plantGeometry2 = new THREE.ConeGeometry(0.1, 0.5, 8);
+  const plantMaterial2 = new THREE.MeshLambertMaterial({
+    color: getPlantColor(plant),
+  });
+  const stalkMesh = new THREE.Mesh(plantGeometry2, plantMaterial2);
+  onionMesh.position.set(plant.x, 0, plant.y);
+  stalkMesh.position.set(plant.x, 0.25, plant.y);
+  stalkMesh.rotation.x = -Math.PI;
+
+  const plantMesh = new THREE.Group();
+  plantMesh.add(onionMesh);
+  plantMesh.add(stalkMesh);
+  plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
+  scene.add(plantMesh);
+}
+
+// Helper Functions
 function PlantMeshManager() {
   return {
     createPlantMesh(plant) {
-      const plantGeometry = new THREE.ConeGeometry(0.4, 1, 8);
-      const plantMaterial = new THREE.MeshLambertMaterial({
-        color: getPlantColor(plant),
-      });
-      const plantMesh = new THREE.Mesh(plantGeometry, plantMaterial);
-
-      plantMesh.position.set(plant.x, 0.5, plant.y);
-      plantMeshes.set(`${plant.x}${plant.y}`, plantMesh);
-      scene.add(plantMesh);
+      if (plantID == "bean") {
+        createBeanMesh(plant);
+      }
+      else if (plantID == "corn") {
+        createCornMesh(plant);
+      }
+      else if (plantID == "potato") {
+        createPotatoMesh(plant);
+      }
+      else if (plantID == "onion") {
+        createOnionMesh(plant);
+      }
     },
     updatePlantMesh(plant) {
       const key = `${plant.x}${plant.y}`;
@@ -471,6 +581,8 @@ function drawPlantButton(label) {
   button.addEventListener("click", () => {
     currentPlantType = label.toLowerCase();
     console.log(`Selected: ${label}`);
+    plantID = currentPlantType;
+    console.log(currentPlantType);
   });
   return button;
 }
