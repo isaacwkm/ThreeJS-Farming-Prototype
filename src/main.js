@@ -375,6 +375,7 @@ window.addEventListener("scene-changed", () => {
   updatePlayerPosition();
   checkScenarioWin();
   createSave("autosave");
+  notify("dayChanged");
 });
 
 // Initialize Game
@@ -464,9 +465,9 @@ renderer.domElement.addEventListener("click", onRendererClick);
 const PlantContainer = document.createElement("div");
 document.body.appendChild(PlantContainer);
 
-function drawPlantButton(emoji, label) {
+function drawPlantButton(label) {
   const button = document.createElement("button");
-  button.textContent = `${emoji} ${label}`;
+  button.textContent = `${Plant.getIcon(label)} ${label}`;
   button.addEventListener("click", () => {
     currentPlantType = label.toLowerCase();
     console.log(`Selected: ${label}`);
@@ -475,10 +476,9 @@ function drawPlantButton(emoji, label) {
 }
 
 // Add buttons to the container
-PlantContainer.appendChild(drawPlantButton("🫘", "Bean"));
-PlantContainer.appendChild(drawPlantButton("🌽", "Corn"));
-PlantContainer.appendChild(drawPlantButton("🥔", "Potato"));
-PlantContainer.appendChild(drawPlantButton("🧅", "Onion"));
+for (let key of availablePlants) {
+  PlantContainer.appendChild(drawPlantButton(key));
+}
 
 //Progress Buttons
 const undo = document.createElement("button");

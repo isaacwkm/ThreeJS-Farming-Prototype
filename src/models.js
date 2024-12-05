@@ -202,10 +202,6 @@ export class Plant {
         this.plantType = plantType;
     }
 
-    getIcon() {
-        return this.plantType.symbol;
-    }
-
     getNeighbors(x, y, plantMap) {
         const neighbors = [];
         for (let dx = -1; dx <= 1; dx++) {
@@ -244,5 +240,10 @@ export class Plant {
             typeNames.push(plant.fullName);
         }
         return typeNames;
+    }
+
+    static getIcon(typeName) {
+        const plantType = allPlantTypes.find(plantType => plantType.fullName == typeName);
+        return plantType.symbol;
     }
 }

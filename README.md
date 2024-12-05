@@ -5,7 +5,7 @@
 No major changes were made.
 
 ## F2.a
-12/1/2024 - Scenarios can now be loaded at compile time through an external DSL. This DSL is based off of YAML and allows designers to specify the initial conditions for each scenario and the conditions needed to complete them. The DSL can also describe special events that happen at specific times within the game. For instance, the following snippet describes the "drought" scenario: </br>
+12/1/2024 - Scenarios can now be loaded at compile time through an external DSL. This DSL is based off of YAML and allows designers to specify some initial conditions for each scenario and the conditions needed to complete them. The DSL can also describe special events that happen at specific times within the game. For instance, the following snippet describes the "drought" scenario: </br>
 ```
 drought:
   grid_size: [10, 5]
@@ -22,6 +22,7 @@ drought:
         - ["water", 0]
         - ["sun", 20]
 ```
+In this example, the grid size is set to ten columns by five rows and the plants available for sowing are potatoes and corn. The conditions for winning the scenario are listed as reaping 20 fully-grown plants within 30 days. Finally, the special event tied to this scenario is a drought event that happens after ten days where all the water on the grid is set to zero and the maximum sun level is set to 20. The design is such that one scenario can possibly have multiple events tied to it.
 
 ## F2.b
 11/30/2024 - Plants are now modified to use internal plant types in order to classify unique growth rules. These types are compiled from internal definitions written in a domain-specific language within JavaScript. The following code snippet provides the internal definition for an onion plant: </br>
