@@ -340,43 +340,9 @@ function updatePlayerPosition() {
   renderer.setCameraPosition(playerCharacter.x, height, playerCharacter.y + 5);
 }
 
-// Event Listeners
-window.addEventListener("keydown", (e) => {
-  handleKeyboardInput(e.key);
-});
-
-// USE THIS FOR SCENE CHANGES
-window.addEventListener("scene-changed", () => {
-  updateMeshes();
-  updatePlayerPosition();
-  checkScenarioWin();
-  createSave("autosave");
-  notify("dayChanged");
-});
-
-// Animation Loop
-function animate() {
-  renderer.render();
-  requestAnimationFrame(() => animate());
-}
-
-animate();
-
 // Helper Functions
 
 const MeshManager = new PlantMeshManager(renderer.scene);
-
-function updateMeshes() {
-  for (const [key, mesh] of MeshManager.plantMeshes) {
-    renderer.removeFromScene(mesh);
-    MeshManager.plantMeshes.delete(key);
-  }
-  for (const [key, plant] of plantsOnGrid) {
-    if (!MeshManager.plantMeshes.has(key)) {
-      MeshManager.createPlantMesh(plant);
-    }
-  }
-}
 
 function onRendererClick(event) {
   // Calculate mouse position in normalized device coordinates (-1 to +1)
@@ -407,6 +373,28 @@ function onRendererClick(event) {
 }
 
 renderer.domElement.addEventListener("click", onRendererClick);
+
+// Event Listeners
+window.addEventListener("keydown", (e) => {
+  handleKeyboardInput(e.key);
+});
+
+// USE THIS FOR SCENE CHANGES
+window.addEventListener("scene-changed", () => {
+  MeshManager.updateMeshes(plantsOnGrid, renderer);
+  updatePlayerPosition();
+  checkScenarioWin();
+  createSave("autosave");
+  notify("dayChanged");
+});
+
+// Animation Loop
+function animate() {
+  renderer.render();
+  requestAnimationFrame(() => animate());
+}
+
+animate();
 
 const PlantContainer = document.createElement("div");
 document.body.appendChild(PlantContainer);
@@ -483,7 +471,6 @@ CommandContainer.appendChild(
 CommandContainer.appendChild(
   drawCommandButton("⬇️", () => handleKeyboardInput("ArrowDown")),
 );
-
 CommandContainer.appendChild(
   drawCommandButton("Next Day", () => handleKeyboardInput("Enter")),
 );

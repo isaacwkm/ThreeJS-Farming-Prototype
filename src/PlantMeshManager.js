@@ -103,6 +103,17 @@ class PlantMeshManager {
             throw new Error(`Unknown plant type: ${plant.type}`);
         this.createMeshGroup(plant, specs);
     }
+    updateMeshes(plantsOnGrid, renderer) {
+        for (const [key, mesh] of this.plantMeshes) {
+            renderer.removeFromScene(mesh);
+            this.plantMeshes.delete(key);
+        }
+        for (const [key, plant] of plantsOnGrid) {
+            if (!this.plantMeshes.has(key)) {
+                this.createPlantMesh(plant);
+            }
+        }
+    }
 }
 
 export default PlantMeshManager;
