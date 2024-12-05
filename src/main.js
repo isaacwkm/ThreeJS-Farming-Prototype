@@ -22,22 +22,26 @@ function scenarioLoader(scenario) {
   height = scenario.grid_size[1];
 
   for (let plantName of scenario.available_plants) {
-    if (Plant.getTypeNames().find(typeName => typeName == plantName))
+    if (Plant.getTypeNames().find((typeName) => typeName == plantName)) {
       availablePlants.push(plantName);
-    else
+    } else {
       throw new Error("Invalid Scenario: Plant unrecognized");
+    }
   }
 
   plantsRequirement = scenario.win_conditions[0];
 
   if (scenario.special_events) {
-    for (let event of scenario.special_events)
+    for (let event of scenario.special_events) {
       specialEvents.push(event);
+    }
   }
 }
 
 function checkSpecialEvents(currentDay) {
-  const currentEvents = specialEvents.filter(event => event.day == currentDay)
+  const currentEvents = specialEvents.filter((event) =>
+    event.day == currentDay
+  );
   for (const event of currentEvents) {
     console.log(`Special Event: ${event.description}`);
     applySpecialEvent(event.effects);
@@ -69,7 +73,7 @@ const undoStack = [];
 const redoStack = [];
 
 let currentPlantType = availablePlants[0];
-let currentDay = 0;
+let currentDay = 1;
 let adultsHarvested = 0;
 
 // Game Functions (Updated to work with THREE.js)
@@ -84,7 +88,7 @@ function createMoveCommand(player, dx, dy) {
       },
       undo() {
         player.move(data.before_dx, data.before_dy);
-      }
+      },
     };
   }
   return null;
@@ -94,7 +98,7 @@ function createTurnCommand(grid) {
   const data = {
     before_grid: grid.serialize(),
     after_grid: "",
-    growthMap: new Map()
+    growthMap: new Map(),
   };
   return {
     execute() {
@@ -107,9 +111,14 @@ function createTurnCommand(grid) {
       }
       for (const [key, plant] of plantsOnGrid) {
         data.growthMap.set(key, plant.growthStage);
-        plant.grow(grid.getSunAt(plant.x, plant.y), grid.getWaterAt(plant.x, plant.y), plantsOnGrid);
+        plant.grow(
+          grid.getSunAt(plant.x, plant.y),
+          grid.getWaterAt(plant.x, plant.y),
+          plantsOnGrid,
+        );
       }
       currentDay++;
+      notify("dayChanged");
     },
     undo() {
       grid.deserialize(data.before_grid);
@@ -117,6 +126,7 @@ function createTurnCommand(grid) {
         plant.growthStage = data.growthMap.get(key);
       }
       currentDay--;
+      notify("dayChanged");
     },
   };
 }
@@ -140,14 +150,16 @@ function createReapCommand(x, y) {
   return {
     execute() {
       plantsOnGrid.delete(`${x}${y}`);
-      if (data.plant.growthStage == 3)
+      if (data.plant.growthStage == 3) {
         adultsHarvested++;
+      }
       grid.sowCell(x, y);
     },
     undo() {
       plantsOnGrid.set(`${x}${y}`, data.plant);
-      if (data.plant.growthStage == 3)
+      if (data.plant.growthStage == 3) {
         adultsHarvested--;
+      }
       grid.sowCell(x, y);
     },
   };
@@ -169,10 +181,11 @@ function handleKeyboardInput(key) {
 function farmTheLand(x, y) {
   redoStack.splice(0, redoStack.length);
   if (playerCharacter.isAdjacent(x, y)) {
-    if (!grid.readCell(x, y).sowed)
+    if (!grid.readCell(x, y).sowed) {
       manageCommand(createSowCommand(x, y));
-    else
+    } else {
       manageCommand(createReapCommand(x, y));
+    }
   }
 }
 
@@ -212,8 +225,9 @@ function createSave(key) {
   };
   const saveData = JSON.stringify(saveFile);
   localStorage.setItem(key, saveData);
-  if (key !== "autosave")
+  if (key !== "autosave") {
     console.log(`Game saved under ${key}`);
+  }
 }
 
 function copyDataFromFile(saveFile) {
@@ -256,20 +270,23 @@ function loadSave(key) {
 
 function autosavePrompt() {
   if (localStorage.getItem("autosave")) {
-    if (confirm("Would you like to continue where you left off?"))
+    if (confirm("Would you like to continue where you left off?")) {
       loadSave("autosave");
-    else
+    } else {
       localStorage.removeItem("autosave");
+    }
   }
 }
 
 function checkScenarioWin() {
-  const win = adultsHarvested >= plantsRequirement.plants && currentDay <= plantsRequirement.time;
+  const win = adultsHarvested >= plantsRequirement.plants &&
+    currentDay <= plantsRequirement.time;
   const lose = currentDay > plantsRequirement.time;
-  if (win)
+  if (win) {
     notify("win");
-  else if (lose)
+  } else if (lose) {
     notify("lose");
+  }
 }
 
 function notify(name) {
@@ -288,7 +305,7 @@ const camera = new THREE.PerspectiveCamera(
   60, // FOV
   window.innerWidth / window.innerHeight,
   0.1, // Near clipping
-  1000 // Far clipping
+  1000, // Far clipping
 );
 camera.position.set(0, height, 5);
 scene.add(camera);
@@ -358,7 +375,7 @@ window.addEventListener("scene-changed", () => {
   updatePlayerPosition();
   checkScenarioWin();
   createSave("autosave");
-})
+});
 
 // Initialize Game
 //autosavePrompt();
@@ -376,7 +393,9 @@ function PlantMeshManager() {
   return {
     createPlantMesh(plant) {
       const plantGeometry = new THREE.ConeGeometry(0.4, 1, 8);
-      const plantMaterial = new THREE.MeshLambertMaterial({ color: getPlantColor(plant) });
+      const plantMaterial = new THREE.MeshLambertMaterial({
+        color: getPlantColor(plant),
+      });
       const plantMesh = new THREE.Mesh(plantGeometry, plantMaterial);
 
       plantMesh.position.set(plant.x, 0.5, plant.y);
@@ -390,7 +409,7 @@ function PlantMeshManager() {
         plantMesh.material.color.set(getPlantColor(plant));
       }
     },
-  }
+  };
 }
 const MeshManager = PlantMeshManager();
 
@@ -400,8 +419,9 @@ function updateMeshes() {
     plantMeshes.delete(key);
   }
   for (const [key, plant] of plantsOnGrid) {
-    if (!plantMeshes.has(key))
-      MeshManager.createPlantMesh(plant)
+    if (!plantMeshes.has(key)) {
+      MeshManager.createPlantMesh(plant);
+    }
   }
 }
 
@@ -416,7 +436,7 @@ function onRendererClick(event) {
   const rect = renderer.domElement.getBoundingClientRect();
   const mouse = new THREE.Vector2(
     ((event.clientX - rect.left) / rect.width) * 2 - 1,
-    -((event.clientY - rect.top) / rect.height) * 2 + 1
+    -((event.clientY - rect.top) / rect.height) * 2 + 1,
   );
 
   // Raycaster
@@ -505,11 +525,44 @@ function drawCommandButton(label, callback) {
   return button;
 }
 
-CommandContainer.appendChild(drawCommandButton("⬅️", () => handleKeyboardInput("ArrowLeft")));
-CommandContainer.appendChild(drawCommandButton("➡️", () => handleKeyboardInput("ArrowRight")));
-CommandContainer.appendChild(drawCommandButton("⬆️", () => handleKeyboardInput("ArrowUp")));
-CommandContainer.appendChild(drawCommandButton("⬇️", () => handleKeyboardInput("ArrowDown")));
+CommandContainer.appendChild(
+  drawCommandButton("⬅️", () => handleKeyboardInput("ArrowLeft")),
+);
+CommandContainer.appendChild(
+  drawCommandButton("➡️", () => handleKeyboardInput("ArrowRight")),
+);
+CommandContainer.appendChild(
+  drawCommandButton("⬆️", () => handleKeyboardInput("ArrowUp")),
+);
+CommandContainer.appendChild(
+  drawCommandButton("⬇️", () => handleKeyboardInput("ArrowDown")),
+);
 
-CommandContainer.appendChild(drawCommandButton("Next Day", () => handleKeyboardInput("Enter")));
+CommandContainer.appendChild(
+  drawCommandButton("Next Day", () => handleKeyboardInput("Enter")),
+);
+
+// Add a new container for game state info
+const GameStateInfoContainer = document.createElement("topRightScreen"); // Custom tag
+document.body.appendChild(GameStateInfoContainer);
+
+function drawDayCounter() {
+  // Add text to the container
+  const dayCounterText = document.createElement("p"); // Use paragraph tag for text
+  dayCounterText.textContent = `Current Day: ${currentDay}`; // Set static text
+
+  // Apply custom styling
+  dayCounterText.classList.add("top-right-text"); // Add CSS class
+
+  // Add a listener for the dayChanged event
+  window.addEventListener("dayChanged", () => {
+    console.log("Day incremented");
+    dayCounterText.textContent = `Current Day: ${currentDay}`;
+  });
+
+  return dayCounterText;
+}
+
+GameStateInfoContainer.appendChild(drawDayCounter());
 
 autosavePrompt();

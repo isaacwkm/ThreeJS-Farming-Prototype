@@ -67,6 +67,25 @@ h1 {
   color: #888;
 }
 
+.top-right-text {
+  border-radius: 5px;
+  border: 2px solid goldenrod;
+  position: fixed; /* Stick it in one spot */
+  top: 10px;       /* Distance from top of the screen */
+  right: 10px;     /* Distance from the right edge */
+  background-color: rgba(255, 255, 255, 1); /* Semi-transparent white background */
+  color: black;    /* Text color */
+  padding: 10px 20px; /* Padding around the text */
+  border-radius: 5px; /* Smooth, rounded corners */
+  font-size: 32px;    /* Adjust font size */
+  font-family: Arial, sans-serif; /* Clean font */
+  font-weight: bold; /* Makes the text bold! */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Slight shadow for depth */
+
+  display: inline-block; /* Prevent the element from stretching unnecessarily */
+  white-space: nowrap; /* Ensures text NEVER wraps to the next line */
+}
+
 button {
   border-radius: 5px;
   border: 2px solid black;
@@ -111,6 +130,17 @@ div2 {
   flex-direction: column;
   gap: 10px;
 }
+
+topRightScreen {
+  position: fixed; 
+  right: 20px; 
+  top: 2%; 
+  transform: translateY(-50%); 
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 
 canvas {
   border-radius: 10px;
