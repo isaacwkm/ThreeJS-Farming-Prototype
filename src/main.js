@@ -6,6 +6,7 @@ import { Player } from "./models.js";
 import { Plant } from "./models.js";
 import { yamlString } from "./scenarios.js";
 
+import Renderer from "./Renderer.js";
 import PlantMeshManager from "./plantMeshManager.js";
 
 import "./style.css";
@@ -296,34 +297,11 @@ function notify(name) {
 }
 
 // THREE.js Setup
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb); // Sky blue
-
-const camera = new THREE.PerspectiveCamera(
-  60, // FOV
-  window.innerWidth / window.innerHeight,
-  0.1, // Near clipping
-  1000, // Far clipping
-);
-camera.position.set(0, height, 5);
-scene.add(camera);
-
-// Lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambientLight);
-
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-directionalLight.position.set(5, 10, 5);
-scene.add(directionalLight);
+const renderer = new Renderer();
+renderer.bindResizeEvent();
+renderer.setCameraPosition(0, height, 5);
 
 // Grid Rendering
-const gridGroup = createGrid(width, height);
-scene.add(gridGroup);
-camera.lookAt(gridGroup.position);
 
 function createGrid(gridWidth, gridHeight) {
   const gridGroup = new THREE.Group();
@@ -345,27 +323,26 @@ function createGrid(gridWidth, gridHeight) {
   return gridGroup;
 }
 
-function updatePlayerPosition() {
-  playerMesh.position.set(playerCharacter.x, 0.5, playerCharacter.y);
-  camera.position.set(playerCharacter.x, height, playerCharacter.y + 5);
-}
+const gridGroup = createGrid(width, height);
+renderer.addToScene(gridGroup);
+renderer.lookAt(gridGroup.position);
 
 // Player Rendering
 const playerMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
 const playerGeometry = new THREE.BoxGeometry(0.9, 0.9, 0.9);
 const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
-scene.add(playerMesh);
+renderer.addToScene(playerMesh);
+
 playerMesh.position.set(0, 0.5, 0);
+
+function updatePlayerPosition() {
+  playerMesh.position.set(playerCharacter.x, 0.5, playerCharacter.y);
+  renderer.setCameraPosition(playerCharacter.x, height, playerCharacter.y + 5);
+}
 
 // Event Listeners
 window.addEventListener("keydown", (e) => {
   handleKeyboardInput(e.key);
-});
-
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
 // USE THIS FOR SCENE CHANGES
@@ -379,19 +356,19 @@ window.addEventListener("scene-changed", () => {
 
 // Animation Loop
 function animate() {
-  renderer.render(scene, camera);
-  requestAnimationFrame(animate);
+  renderer.render();
+  requestAnimationFrame(() => animate());
 }
 
 animate();
 
 // Helper Functions
 
-const MeshManager = new PlantMeshManager(scene);
+const MeshManager = new PlantMeshManager(renderer.scene);
 
 function updateMeshes() {
   for (const [key, mesh] of MeshManager.plantMeshes) {
-    scene.remove(mesh);
+    renderer.removeFromScene(mesh);
     MeshManager.plantMeshes.delete(key);
   }
   for (const [key, plant] of plantsOnGrid) {
@@ -411,7 +388,7 @@ function onRendererClick(event) {
 
   // Raycaster
   const raycaster = new THREE.Raycaster();
-  raycaster.setFromCamera(mouse, camera);
+  raycaster.setFromCamera(mouse, renderer.camera);
 
   // Intersect with grid
   const intersects = raycaster.intersectObject(gridGroup);
