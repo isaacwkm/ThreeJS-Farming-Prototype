@@ -1,4 +1,3 @@
-import * as THREE from "three";
 import YAML from "js-yaml";
 
 import { Grid } from "./models.js";
@@ -7,7 +6,7 @@ import { Plant } from "./models.js";
 import { yamlString } from "./scenarios.js";
 
 import Renderer from "./Renderer.js";
-import PlantMeshManager from "./plantMeshManager.js";
+import { GridView, PlayerView, PlantViews } from "./MeshManagers.js";
 
 import "./style.css";
 
@@ -303,86 +302,43 @@ renderer.setCameraPosition(0, height, 5);
 
 // Grid Rendering
 
-function createGrid(gridWidth, gridHeight) {
-  const gridGroup = new THREE.Group();
-
-  for (let i = 0; i < gridWidth; i++) {
-    for (let j = 0; j < gridHeight; j++) {
-      const planeGeometry = new THREE.PlaneGeometry(1, 1);
-      const planeMaterial = new THREE.MeshBasicMaterial({
-        color: 0x228B22,
-        wireframe: false,
-      });
-      const gridPlane = new THREE.Mesh(planeGeometry, planeMaterial);
-      gridPlane.rotation.x = -Math.PI / 2;
-      gridPlane.position.set(i, 0, j);
-      gridGroup.add(gridPlane);
-    }
-  }
-
-  return gridGroup;
-}
-
-const gridGroup = createGrid(width, height);
-renderer.addToScene(gridGroup);
-renderer.lookAt(gridGroup.position);
+const gridMeshManager = new GridView(width, height);
+gridMeshManager.createGrid();
+renderer.addToScene(gridMeshManager.getGrid());
+renderer.lookAt(gridMeshManager.getPosition());
 
 // Player Rendering
-const playerMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
-const playerGeometry = new THREE.BoxGeometry(0.9, 0.9, 0.9);
-const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
-renderer.addToScene(playerMesh);
-
-playerMesh.position.set(0, 0.5, 0);
-
-function updatePlayerPosition() {
-  playerMesh.position.set(playerCharacter.x, 0.5, playerCharacter.y);
-  renderer.setCameraPosition(playerCharacter.x, height, playerCharacter.y + 5);
-}
+const playerMeshManager = new PlayerView(0, 0);
+renderer.addToScene(playerMeshManager.getPlayerMesh());
 
 // Helper Functions
 
-const MeshManager = new PlantMeshManager(renderer.scene);
+const plantMeshManager = new PlantViews(renderer.scene);
 
-function onRendererClick(event) {
-  // Calculate mouse position in normalized device coordinates (-1 to +1)
-  const rect = renderer.domElement.getBoundingClientRect();
-  const mouse = new THREE.Vector2(
-    ((event.clientX - rect.left) / rect.width) * 2 - 1,
-    -((event.clientY - rect.top) / rect.height) * 2 + 1,
-  );
+renderer.onClick((intersect) => {
+  const point = intersect.point;
+  const gridX = Math.round(point.x);
+  const gridY = Math.round(point.z);
 
-  // Raycaster
-  const raycaster = new THREE.Raycaster();
-  raycaster.setFromCamera(mouse, renderer.camera);
+  console.log(`Clicked Grid Tile: (${gridX}, ${gridY})`);
 
-  // Intersect with grid
-  const intersects = raycaster.intersectObject(gridGroup);
-  if (intersects.length > 0) {
-    const intersect = intersects[0];
-    const point = intersect.point;
-    console.log(point);
-
-    const gridX = Math.round(point.x);
-    const gridY = Math.round(point.z);
-
-    console.log(`Clicked Grid Tile: (${gridX}, ${gridY})`);
-
-    farmTheLand(gridX, gridY);
-  }
-}
-
-renderer.domElement.addEventListener("click", onRendererClick);
+  farmTheLand(gridX, gridY);
+})
 
 // Event Listeners
 window.addEventListener("keydown", (e) => {
   handleKeyboardInput(e.key);
 });
 
+function updatePlayerPosition(x, y) {
+  playerMeshManager.updatePosition(x, y);
+  renderer.setCameraPosition(x, height, y + 5);
+}
+
 // USE THIS FOR SCENE CHANGES
 window.addEventListener("scene-changed", () => {
-  MeshManager.updateMeshes(plantsOnGrid, renderer);
-  updatePlayerPosition();
+  plantMeshManager.updateMeshes(plantsOnGrid, renderer);
+  updatePlayerPosition(playerCharacter.x, playerCharacter.y);
   checkScenarioWin();
   createSave("autosave");
   notify("dayChanged");

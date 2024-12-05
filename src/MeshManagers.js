@@ -1,5 +1,62 @@
 import * as THREE from "three"
 
+export class GridView {
+    constructor(rows, cols) {
+        this.rows = rows;
+        this.cols = cols;
+        this.gridGroup = new THREE.Group(); // A THREE.js group for grid tiles
+    }
+
+    // Create the grid
+    createGrid() {
+        for (let i = 0; i < this.rows; i++) {
+            for (let j = 0; j < this.cols; j++) {
+                const planeGeometry = new THREE.PlaneGeometry(1, 1);
+                const planeMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x228B22, // Green color
+                    wireframe: false,
+                });
+
+                const gridTile = new THREE.Mesh(planeGeometry, planeMaterial);
+                gridTile.rotation.x = -Math.PI / 2;
+                gridTile.position.set(i, 0, j); // Place tile in grid layout
+                this.gridGroup.add(gridTile);
+            }
+        }
+    }
+
+    getGrid() {
+        return this.gridGroup;
+    }
+
+    getPosition() {
+        return this.gridGroup.position;
+    }
+}
+
+export class PlayerView {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+
+        const playerMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
+        const playerGeometry = new THREE.BoxGeometry(0.9, 0.9, 0.9);
+        this.playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
+
+        this.playerMesh.position.set(this.x, 0.5, this.y);
+    }
+
+    updatePosition(newX, newY) {
+        this.x = newX;
+        this.y = newY;
+        this.playerMesh.position.set(this.x, 0.5, this.y);
+    }
+
+    getPlayerMesh() {
+        return this.playerMesh;
+    }
+}
+
 const plantSpecs = {
     bean: [
         {
@@ -74,7 +131,7 @@ function getPlantColor(plant) {
     return colors[plant.growthStage] || 0x32CD32;
 }
 
-class PlantMeshManager {
+export class PlantViews {
     constructor(scene) {
         this.scene = scene;
         this.plantMeshes = new Map();
@@ -115,5 +172,3 @@ class PlantMeshManager {
         }
     }
 }
-
-export default PlantMeshManager;

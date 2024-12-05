@@ -4,6 +4,7 @@ import * as THREE from "three";
 class Renderer {
     constructor() {
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.raycaster = new THREE.Raycaster();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.domElement = this.renderer.domElement
         document.body.appendChild(this.domElement);
@@ -55,6 +56,26 @@ class Renderer {
 
     lookAt(x, y, z) {
         this.camera.lookAt(x, y, z);
+    }
+
+    onClick(callback) {
+        this.renderer.domElement.addEventListener("click", (event) => {
+            // Translate mouse coordinates into normalized device coordinates
+            const rect = this.domElement.getBoundingClientRect();
+            const mouse = new THREE.Vector2(
+                ((event.clientX - rect.left) / rect.width) * 2 - 1,
+                -((event.clientY - rect.top) / rect.height) * 2 + 1,
+            );
+            // Set raycaster from these coordinates
+            this.raycaster.setFromCamera(mouse, this.camera);
+
+            // Check for intersections
+            const intersects = this.raycaster.intersectObjects(this.scene.children, true);
+            if (intersects.length > 0) {
+                const intersect = intersects[0];
+                callback(intersect); // Pass the intersection data to the callback
+            }
+        });
     }
 }
 
