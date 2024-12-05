@@ -14,7 +14,6 @@ let height;
 const availablePlants = [];
 let plantsRequirement = { plants: 0, time: 0 };
 const specialEvents = [];
-let plantID = 0;
 
 const plantsOnGrid = new Map();
 
@@ -500,16 +499,16 @@ function createOnionMesh(plant) {
 function PlantMeshManager() {
   return {
     createPlantMesh(plant) {
-      if (plantID == "bean") {
+      if (plant.type == "bean") {
         createBeanMesh(plant);
       }
-      else if (plantID == "corn") {
+      else if (plant.type == "corn") {
         createCornMesh(plant);
       }
-      else if (plantID == "potato") {
+      else if (plant.type == "potato") {
         createPotatoMesh(plant);
       }
-      else if (plantID == "onion") {
+      else if (plant.type == "onion") {
         createOnionMesh(plant);
       }
     },
@@ -581,8 +580,6 @@ function drawPlantButton(label) {
   button.addEventListener("click", () => {
     currentPlantType = label.toLowerCase();
     console.log(`Selected: ${label}`);
-    plantID = currentPlantType;
-    console.log(currentPlantType);
   });
   return button;
 }
