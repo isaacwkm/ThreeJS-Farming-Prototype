@@ -6,9 +6,13 @@ import { Plant } from "./models.js";
 import { yamlString } from "./scenarios.js";
 
 import Renderer from "./Renderer.js";
-import { GridView, PlayerView, PlantViews } from "./MeshManagers.js";
+import { GridView, PlantViews, PlayerView } from "./MeshManagers.js";
 
 import "./style.css";
+
+import { localize } from "./localization.js";
+import { getSavedLanguage, initLanguageSelector } from "./languageSelector.js";
+import translations from "./translations.json" assert { type: "json" };
 
 // Game Initialization
 let width;
@@ -16,8 +20,29 @@ let height;
 const availablePlants = [];
 let plantsRequirement = { plants: 0, time: 0 };
 const specialEvents = [];
-
 const plantsOnGrid = new Map();
+let currentLanguage;
+
+// On game startup or app initialization
+document.addEventListener("DOMContentLoaded", () => {
+  // Step 1: Dynamically create the language dropdown container
+  const dropdownContainer = document.createElement("div");
+  dropdownContainer.className = "language-dropdown"; // Add container class for styling
+
+  // Step 2: Append the container to the desired location
+  // Example: Append to a header, if it exists
+  const TopLeftContainer = document.createElement("topLeftScreen"); // Custom tag
+  document.body.appendChild(TopLeftContainer);
+
+  TopLeftContainer.appendChild(dropdownContainer);
+
+  // Step 3: Initialize the dropdown with the dynamically created container
+  initLanguageSelector(dropdownContainer);
+
+  // Step 4: Optionally log the saved language or apply translations
+  currentLanguage = getSavedLanguage();
+  console.log(currentLanguage);
+});
 
 function scenarioLoader(scenario) {
   width = scenario.grid_size[0];
@@ -323,7 +348,7 @@ renderer.onClick((intersect) => {
   console.log(`Clicked Grid Tile: (${gridX}, ${gridY})`);
 
   farmTheLand(gridX, gridY);
-})
+});
 
 // Event Listeners
 window.addEventListener("keydown", (e) => {
@@ -372,7 +397,7 @@ for (let key of availablePlants) {
 
 //Progress Buttons
 const undo = document.createElement("button");
-undo.textContent = "Undo";
+undo.textContent = localize("Undo_msg", currentLanguage, translations);
 undo.addEventListener("click", () => {
   Undo();
 });

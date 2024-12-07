@@ -86,6 +86,66 @@ h1 {
   white-space: nowrap; /* Ensures text NEVER wraps to the next line */
 }
 
+/* Container for the language dropdown */
+.language-dropdown {
+  position: relative; /* Ensures the dropdown menu is positioned relative to the button */
+  display: inline-block;
+}
+
+/* The dropdown button */
+.language-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.language-button:hover {
+  background-color: #0056b3;
+}
+
+/* The hidden dropdown menu */
+.language-menu {
+  display: none; /* Hidden by default */
+  position: absolute; /* Position relative to the .language-dropdown */
+  top: calc(100% + 50px); /* Align menu directly below the button */
+  left: 0; /* Align the menu to the left edge of the button */
+  background-color: white;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Adds shadow for a floating effect */
+  z-index: 1000; /* Ensures the dropdown is above other elements */
+  border-radius: 5px;
+  min-width: 150px; /* Ensures the dropdown menu is at least as wide as the button */
+  padding: 0; /* Removes padding for menu items */
+  overflow: hidden; /* Rounds dropdown menu corners */
+  margin: 0; /* Prevent gaps caused by possible default margins */
+}
+
+/* Show the dropdown menu when the parent has the 'open' class */
+.language-dropdown.open .language-menu {
+  display: block; /* Makes the menu visible */
+}
+
+/* Dropdown menu button styles */
+.language-menu button {
+  width: 100%; /* Ensures each menu item takes full width */
+  padding: 10px; /* Adds padding inside each item */
+  text-align: left; /* Aligns text to the left */
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+  margin: 0; /* Ensure no extra space below the button */
+}
+
+.language-menu button:hover {
+  background-color: #f0f0f0; /* Adds a light grey background on hover */
+}
+
 button {
   border-radius: 5px;
   border: 2px solid black;
@@ -135,6 +195,16 @@ topRightScreen {
   position: fixed; 
   right: 20px; 
   top: 2%; 
+  transform: translateY(-50%); 
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+topLeftScreen {
+  position: fixed; 
+  left: 40px; 
+  top: 10%; 
   transform: translateY(-50%); 
   display: flex;
   flex-direction: column;

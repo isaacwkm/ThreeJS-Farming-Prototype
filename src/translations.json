@@ -11,9 +11,9 @@
         "arab": "أدخل اسم الحفظ",
         "note": "Found in main.js with comment: save_prompt_msg"
     },
-    "Undo": {
+    "Undo_msg": {
         "eng": "Undo",
-        "esp": "Start",
+        "esp": "Deshacer",
         "arab": "Exit",
         "note": "Found in main.js with comment: undo_msg"
     },
