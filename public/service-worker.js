@@ -11,8 +11,8 @@ const appShellFiles = [
     "./src/scenarios.js",
     "./src/translations.json",
     "./src/style.css",
-    // "./assets/icon-192.png",
-    // "./assets/icon-512.png"
+    "./assets/icon-192.png",
+    "./assets/icon-512.png"
 ];
 // useless fucking comment
 self.addEventListener("install", (event) => {
