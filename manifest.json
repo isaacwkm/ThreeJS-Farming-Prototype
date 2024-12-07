@@ -2,12 +2,12 @@
     "name": "cmpm-121-final-pwa",
     "icons": [
         {
-            "src": "https://cdn.glitch.global/4fc6eda5-1313-4a1e-8b76-b859653416cd/brace-logo-symbol.png?v=1733533998031",
+            "src": "./icon-192.png",
             "type": "image/png",
             "sizes": "192x192"
         },
         {
-            "src": "https://cdn.glitch.global/4fc6eda5-1313-4a1e-8b76-b859653416cd/brace-logo-symbol.png?v=1733533998031",
+            "src": "./icon-512.png",
             "type": "image/png",
             "sizes": "512x512"
         }
