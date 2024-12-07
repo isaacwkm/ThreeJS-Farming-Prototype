@@ -86,3 +86,13 @@ export const languages = {
     container.classList.remove("open"); // Close the dropdown menu
     window.location.reload(); // Reload the page to apply the selected language
   }
+
+  // Create a function for localization
+export function localize(key, language, translations) {
+  if (translations[key] && translations[key][language]) { // if the translation exists
+      return translations[key][language]; // Language-specific translation
+  }
+  // Fallback to English or display a placeholder
+  if (!translations[key]) return `[Missing Translation: ${key}]`;
+  return translations[key].eng;
+}
