@@ -5,7 +5,7 @@ const appShellFiles = [
     "./src/main.js",
     "./src/Renderer.js",
     "./src/MeshManagers.js",
-    "./languageSelector.js",
+    "./src/languageSelector.js",
     "./src/models.js",
     "./src/plants.js",
     "./src/scenarios.js",
