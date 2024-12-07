@@ -297,7 +297,7 @@ function loadSave(key) {
 
 function autosavePrompt() {
   if (localStorage.getItem("autosave")) {
-    if (confirm("Would you like to continue where you left off?")) {
+    if (confirm(lang.localize("Autosave_Continue_prompt", currentLanguage, translations))) {
       loadSave("autosave");
     } else {
       localStorage.removeItem("autosave");
@@ -413,7 +413,7 @@ PlantContainer.appendChild(redo);
 const save = document.createElement("button");
 save.textContent = lang.localize("Save_msg", currentLanguage, translations);
 save.addEventListener("click", () => {
-  const key = prompt("Enter save name");
+  const key = prompt(lang.localize("save_prompt", currentLanguage, translations));
   createSave(key);
 });
 PlantContainer.appendChild(save);

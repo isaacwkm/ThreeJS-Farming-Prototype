@@ -53,11 +53,17 @@
     "arab": " :اليوم الحالي",
     "note": "#NEEDS_R2L_SUPPORT (already implemented) IN CODE. Found in main.js on line 441 and 448 with comment: "
   },
-  "Invalid_Scenario": {
+  "Invalid_Scenario_UNUSED": {
     "eng": "Invalid Scenario: Plant unrecognized",
     "chi": "无效的场景：植物无法识别",
     "arab": "سيناريو غير صالح: النبات غير معترف به",
     "note": "Found in main.js on line 30 with comment: "
+  },
+  "Autosave_Continue_prompt": {
+    "eng": "Would you like to continue where you left off?",
+    "chi": "您想从上次中断的地方继续吗",
+    "arab": "هل ترغب بالاستمرار من حيث توقفت؟",
+    "note": "Found in main.js"
   },
 
   "bean_button": {
