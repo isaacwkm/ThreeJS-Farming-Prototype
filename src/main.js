@@ -383,7 +383,7 @@ document.body.appendChild(PlantContainer);
 function drawPlantButton(label) {
   const button = document.createElement("button");
   let key = label;
-  key += "_button" // Check translations.json for entries containing "_button" .
+  key += "_button"; // Check translations.json for entries containing "_button" .
   button.textContent = lang.localize(key, currentLanguage, translations);
   button.addEventListener("click", () => {
     currentPlantType = label.toLowerCase();
@@ -422,7 +422,9 @@ const load = document.createElement("button");
 load.textContent = lang.localize("Load_msg", currentLanguage, translations);
 load.addEventListener("click", () => {
   listSaves();
-  const key = prompt(lang.localize("save_prompt", currentLanguage, translations));
+  const key = prompt(
+    lang.localize("save_prompt", currentLanguage, translations),
+  );
   loadSave(key);
 });
 PlantContainer.appendChild(load);
@@ -453,7 +455,10 @@ CommandContainer.appendChild(
   drawCommandButton("⬇️", () => handleKeyboardInput("ArrowDown")),
 );
 CommandContainer.appendChild(
-  drawCommandButton(lang.localize("Next_Day", currentLanguage, translations), () => handleKeyboardInput("Enter")),
+  drawCommandButton(
+    lang.localize("Next_Day", currentLanguage, translations),
+    () => handleKeyboardInput("Enter"),
+  ),
 );
 
 // Add a new container for game state info
@@ -463,38 +468,53 @@ document.body.appendChild(GameStateInfoContainer);
 function drawDayCounter() {
   // Add text to the container
   const dayCounterText = document.createElement("p"); // Use paragraph tag for text
-  let r2l = 0;
-  // if 
-  // let text = handleLangR2L(1, currentDay, r2l);
-  dayCounterText.textContent = `Current Day: ${currentDay}`; // Set static text
-  dayCounterText.textContent = text; // Set static text
+  const currentDayMsg = lang.localize(
+    "Current_Day",
+    currentLanguage,
+    translations,
+  ); // the non-dynamic part of the message to be displayed
+  const finalMsg = handleLangR2L(currentDayMsg, currentDay, currentLanguage); // handles final output of message for right-to-left languages
+  dayCounterText.textContent = finalMsg; // Set final static text
 
   // Apply custom styling
   dayCounterText.classList.add("top-right-text"); // Add CSS class
 
   // Add a listener for the dayChanged event
   window.addEventListener("dayChanged", () => {
-    dayCounterText.textContent = `Current Day: ${currentDay}`;
+    const dayCounterText = document.createElement("p"); // Use paragraph tag for text
+    const currentDayMsg = lang.localize(
+      "Current_Day",
+      currentLanguage,
+      translations,
+    ); // the non-dynamic part of the message to be displayed
+    const finalMsg = handleLangR2L(currentDayMsg, currentDay, currentLanguage); // handles final output of message for right-to-left languages
+    dayCounterText.textContent = finalMsg; // Set final static text
   });
 
   return dayCounterText;
 }
 
-function handleLangR2L(leftTextComponent = String, rightTextComponent = String, language = String){
-  if (language == "arab"){
+function handleLangR2L(
+  leftTextComponent = String,
+  rightTextComponent = String,
+  language = String,
+) {
+  if (language == "arab") {
     stringR2L(leftTextComponent, rightTextComponent, 1);
-  }
-  else{
+  } else {
     stringR2L(leftTextComponent, rightTextComponent, 0);
   }
 }
 
-function stringR2L(leftTextComponent = String, rightTextComponent = String, R2L = Boolean){
+function stringR2L(
+  leftTextComponent = String,
+  rightTextComponent = String,
+  R2L = Boolean,
+) {
   let str = "";
-  if (R2L == true){
+  if (R2L == true) {
     return str += rightTextComponent + leftTextComponent;
-  }
-  else { // if The function was called but the script does not need to be reversed right to left:
+  } else { // if The function was called but the script does not need to be reversed right to left:
     return str += leftTextComponent + rightTextComponent;
   }
 }

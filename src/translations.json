@@ -1,90 +1,90 @@
 {
-    "Template_do_not_delete": {
-        "eng": "Original message in English",
-        "chi": "英文原始信息",
-        "arab": "الرسالة الأصلية باللغة العربية",
-        "note": "Found in file.js with comment: Template_do_not_delete_msg"
-    },
-    "save_prompt": {
-        "eng": "Enter save name",
-        "chi": "输入保存名称",
-        "arab": "أدخل اسم الحفظ",
-        "note": "Found in main.js on line 391 and 400 with comment: "
-    },
-    "Undo_msg": {
-        "eng": "Undo",
-        "chi": "撤销",
-        "arab": "تراجع",
-        "note": "Found in main.js on line 375 with comment: "
-    },
-    "Redo_msg": {
-        "eng": "Redo",
-        "chi": "重做",
-        "arab": "إعادة",
-        "note": "Found in main.js on line 382 with comment: "
-    },
-    "Save_msg": {
-        "eng": "Save",
-        "chi": "保留",
-        "arab": "حفظ",
-        "note": "Found in main.js"
-    },
-    "Load_msg": {
-        "eng": "Load",
-        "chi": "加载",
-        "arab": "حمولة",
-        "note": "Found in main.js"
-    },
-    "Next_Day": {
-        "eng": "Next Day",
-        "chi": "下一天",
-        "arab": "اليوم التالي",
-        "note": "Found in main.js on line 431 with comment: "
-    },
-    "Load_Prompt": {
-        "eng": "Would you like to continue where you left off?",
-        "chi": "要继续上次的进度吗？",
-        "arab": "هل تريد المتابعة من حيث توقفت؟",
-        "note": "Found in main.js on line 275 with comment: "
-    },
-    "Current_Day": {
-        "eng": "Current Day: {currentDay}",
-        "chi": "当前天数: {currentDay}",
-        "arab": "{currentDay} :اليوم الحالي",
-        "note": "Found in main.js on line 441 and 448 with comment: "
-    },
-    "Invalid_Scenario": {
-        "eng": "Invalid Scenario: Plant unrecognized",
-        "chi": "无效的场景：植物无法识别",
-        "arab": "سيناريو غير صالح: النبات غير معترف به",
-        "note": "Found in main.js on line 30 with comment: "
-    },
+  "Template_do_not_delete": {
+    "eng": "Original message in English",
+    "chi": "英文原始信息",
+    "arab": "الرسالة الأصلية باللغة العربية",
+    "note": "Found in file.js with comment: Template_do_not_delete_msg"
+  },
+  "save_prompt": {
+    "eng": "Enter save name",
+    "chi": "输入保存名称",
+    "arab": "أدخل اسم الحفظ",
+    "note": "Found in main.js on line 391 and 400 with comment: "
+  },
+  "Undo_msg": {
+    "eng": "Undo",
+    "chi": "撤销",
+    "arab": "تراجع",
+    "note": "Found in main.js on line 375 with comment: "
+  },
+  "Redo_msg": {
+    "eng": "Redo",
+    "chi": "重做",
+    "arab": "إعادة",
+    "note": "Found in main.js on line 382 with comment: "
+  },
+  "Save_msg": {
+    "eng": "Save",
+    "chi": "保留",
+    "arab": "حفظ",
+    "note": "Found in main.js"
+  },
+  "Load_msg": {
+    "eng": "Load",
+    "chi": "加载",
+    "arab": "حمولة",
+    "note": "Found in main.js"
+  },
+  "Next_Day": {
+    "eng": "Next Day",
+    "chi": "下一天",
+    "arab": "اليوم التالي",
+    "note": "Found in main.js on line 431 with comment: "
+  },
+  "Load_Prompt": {
+    "eng": "Would you like to continue where you left off?",
+    "chi": "要继续上次的进度吗？",
+    "arab": "هل تريد المتابعة من حيث توقفت؟",
+    "note": "Found in main.js on line 275 with comment: "
+  },
+  "Current_Day": {
+    "eng": "Current Day: ",
+    "chi": "当前天数: ",
+    "arab": " :اليوم الحالي",
+    "note": "#NEEDS_R2L_SUPPORT (already implemented) IN CODE. Found in main.js on line 441 and 448 with comment: "
+  },
+  "Invalid_Scenario": {
+    "eng": "Invalid Scenario: Plant unrecognized",
+    "chi": "无效的场景：植物无法识别",
+    "arab": "سيناريو غير صالح: النبات غير معترف به",
+    "note": "Found in main.js on line 30 with comment: "
+  },
 
-    "bean_button": {
-        "eng": "🫘 bean",
-        "chi": "🫘 豆子",
-        "arab": "فاصوليا 🫘",
-        "note": "Found in plants.js on line 3 with comment: "
-    },
-    "corn_button": {
-        "eng": "🌽 corn",
-        "chi": "🌽 玉米",
-        "arab": "ذرة 🌽",
-        "note": "Found in plants.js on line 13 with comment: "
-    },
-    "potato_button": {
-        "eng": "🥔 potato",
-        "chi": "🥔土豆",
-        "arab": "بطاطا 🥔",
-        "note": "Found in plants.js on line 22 with comment: "
-    },
-    "onion_button": {
-        "eng": "🧅 onion",
-        "chi": "🧅 洋葱",
-        "arab": "بصل 🧅",
-        "note": "Found in plants.js on line 31 with comment: "
-    },
-    "last_translation_do_not_delete": {
-        "note": "Keep this element for formatting purposes."
-    }
+  "bean_button": {
+    "eng": "🫘 bean",
+    "chi": "🫘 豆子",
+    "arab": "فاصوليا 🫘",
+    "note": "Found in plants.js on line 3 with comment: "
+  },
+  "corn_button": {
+    "eng": "🌽 corn",
+    "chi": "🌽 玉米",
+    "arab": "ذرة 🌽",
+    "note": "Found in plants.js on line 13 with comment: "
+  },
+  "potato_button": {
+    "eng": "🥔 potato",
+    "chi": "🥔土豆",
+    "arab": "بطاطا 🥔",
+    "note": "Found in plants.js on line 22 with comment: "
+  },
+  "onion_button": {
+    "eng": "🧅 onion",
+    "chi": "🧅 洋葱",
+    "arab": "بصل 🧅",
+    "note": "Found in plants.js on line 31 with comment: "
+  },
+  "last_translation_do_not_delete": {
+    "note": "Keep this element for formatting purposes."
+  }
 }
