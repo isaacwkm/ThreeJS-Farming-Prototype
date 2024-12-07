@@ -11,7 +11,7 @@ import { GridView, PlantViews, PlayerView } from "./MeshManagers.js";
 import "./style.css";
 
 import * as lang from "./languageSelector.js";
-import translations from "./translations.json" assert { type: "json" };
+import translations from "./translations.json" with { type: "json" };
 
 // Game Initialization
 let width;
@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
   currentLanguage = lang.getSavedLanguage();
   console.log(currentLanguage);
 });
-currentLanguage = getSavedLanguage();
+currentLanguage = lang.getSavedLanguage();
 
 function scenarioLoader(scenario) {
   width = scenario.grid_size[0];
@@ -382,7 +382,9 @@ document.body.appendChild(PlantContainer);
 
 function drawPlantButton(label) {
   const button = document.createElement("button");
-  button.textContent = `${Plant.getIcon(label)} ${label}`;
+  let key = label;
+  key += "_button" // Check translations.json for entries containing "_button" .
+  button.textContent = lang.localize(key, currentLanguage, translations);
   button.addEventListener("click", () => {
     currentPlantType = label.toLowerCase();
     console.log(`Selected: ${label}`);
@@ -397,20 +399,19 @@ for (let key of availablePlants) {
 
 //Progress Buttons
 const undo = document.createElement("button");
-console.log(currentLanguage);
-undo.textContent = localize("Undo_msg", currentLanguage, translations);
+undo.textContent = lang.localize("Undo_msg", currentLanguage, translations);
 undo.addEventListener("click", () => {
   Undo();
 });
 PlantContainer.appendChild(undo);
 
 const redo = document.createElement("button");
-redo.textContent = "Redo";
+redo.textContent = lang.localize("Redo_msg", currentLanguage, translations);
 redo.addEventListener("click", Redo);
 PlantContainer.appendChild(redo);
 
 const save = document.createElement("button");
-save.textContent = "Save";
+save.textContent = lang.localize("Save_msg", currentLanguage, translations);
 save.addEventListener("click", () => {
   const key = prompt("Enter save name");
   createSave(key);
@@ -418,10 +419,10 @@ save.addEventListener("click", () => {
 PlantContainer.appendChild(save);
 
 const load = document.createElement("button");
-load.textContent = "Load";
+load.textContent = lang.localize("Load_msg", currentLanguage, translations);
 load.addEventListener("click", () => {
   listSaves();
-  const key = prompt("Enter save name");
+  const key = prompt(lang.localize("save_prompt", currentLanguage, translations));
   loadSave(key);
 });
 PlantContainer.appendChild(load);
@@ -452,7 +453,7 @@ CommandContainer.appendChild(
   drawCommandButton("⬇️", () => handleKeyboardInput("ArrowDown")),
 );
 CommandContainer.appendChild(
-  drawCommandButton("Next Day", () => handleKeyboardInput("Enter")),
+  drawCommandButton(lang.localize("Next_Day", currentLanguage, translations), () => handleKeyboardInput("Enter")),
 );
 
 // Add a new container for game state info
@@ -462,7 +463,11 @@ document.body.appendChild(GameStateInfoContainer);
 function drawDayCounter() {
   // Add text to the container
   const dayCounterText = document.createElement("p"); // Use paragraph tag for text
+  let r2l = 0;
+  // if 
+  // let text = handleLangR2L(1, currentDay, r2l);
   dayCounterText.textContent = `Current Day: ${currentDay}`; // Set static text
+  dayCounterText.textContent = text; // Set static text
 
   // Apply custom styling
   dayCounterText.classList.add("top-right-text"); // Add CSS class
@@ -473,6 +478,25 @@ function drawDayCounter() {
   });
 
   return dayCounterText;
+}
+
+function handleLangR2L(leftTextComponent = String, rightTextComponent = String, language = String){
+  if (language == "arab"){
+    stringR2L(leftTextComponent, rightTextComponent, 1);
+  }
+  else{
+    stringR2L(leftTextComponent, rightTextComponent, 0);
+  }
+}
+
+function stringR2L(leftTextComponent = String, rightTextComponent = String, R2L = Boolean){
+  let str = "";
+  if (R2L == true){
+    return str += rightTextComponent + leftTextComponent;
+  }
+  else { // if The function was called but the script does not need to be reversed right to left:
+    return str += leftTextComponent + rightTextComponent;
+  }
 }
 
 GameStateInfoContainer.appendChild(drawDayCounter());
