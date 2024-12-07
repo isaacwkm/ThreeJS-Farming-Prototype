@@ -2,12 +2,12 @@
     "name": "cmpm-121-final-pwa",
     "icons": [
         {
-            "src": "/project/public/icon-192.png",
+            "src": "/public/icon-192.png",
             "type": "image/png",
             "sizes": "192x192"
         },
         {
-            "src": "/project/public/icon-512.png",
+            "src": "/public/icon-512.png",
             "type": "image/png",
             "sizes": "512x512"
         }
