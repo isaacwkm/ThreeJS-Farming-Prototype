@@ -1,9 +1,8 @@
 // Define the available languages and their names
 export const languages = {
     eng: "English",
-    esp: "Español",
-    fr: "Français",
-    de: "Deutsch",
+    chi: "中文",
+    arab: "العربية",
   };
   
   // Default language if nothing is saved
