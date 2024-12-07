@@ -1,0 +1,32 @@
+{
+    "Template_do_not_delete": {
+        "eng": "Original message in English",
+        "esp": "Mensaje original en español",
+        "arab": "الرسالة الأصلية باللغة العربية",
+        "note": "Found in file.js with comment: Template_do_not_delete_msg"
+    },
+    "save_prompt": {
+        "eng": "Enter save name",
+        "esp": "Ingrese el nombre del guardado",
+        "arab": "أدخل اسم الحفظ",
+        "note": "Found in main.js with comment: save_prompt_msg"
+    },
+    "Undo": {
+        "eng": "Undo",
+        "esp": "Start",
+        "arab": "Exit",
+        "note": "Found in main.js with comment: undo_msg"
+    },
+    "Template": {
+        "eng": "Original message in English",
+        "esp": "Mensaje original en español",
+        "arab": "الرسالة الأصلية باللغة العربية",
+        "note": "Found in file.js with comment: Template_msg"
+    },
+    
+    
+    
+    "last_translation_do_not_delete": {
+        "note": "Keep this element for formatting purposes."
+    }
+}
