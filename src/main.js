@@ -524,7 +524,7 @@ GameStateInfoContainer.appendChild(drawDayCounter());
 autosavePrompt();
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/project/service-worker.js")
+  navigator.serviceWorker.register("/cmpm-121-final-threejs/service-worker.js")
     .then((registration) => {
       console.log("Service worker registered with scope: ", registration.scope);
     })
