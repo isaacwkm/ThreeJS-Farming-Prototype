@@ -1,6 +1,6 @@
 const cacheName = "cmpm121pwa-v1";
 const appShellFiles = [
-    "/project",
+    "/",
     "/index.html",
     "/src/main.js",
     "/src/Renderer.js",
