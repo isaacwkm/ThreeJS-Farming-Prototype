@@ -14,7 +14,7 @@ const appShellFiles = [
     // "./assets/icon-192.png",
     // "./assets/icon-512.png"
 ];
-
+// useless fucking comment
 self.addEventListener("install", (event) => {
     event.waitUntil(
         caches.open(cacheName).then((cache) => {
