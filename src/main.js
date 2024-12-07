@@ -10,8 +10,7 @@ import { GridView, PlantViews, PlayerView } from "./MeshManagers.js";
 
 import "./style.css";
 
-import { localize } from "./localization.js";
-import { getSavedLanguage, initLanguageSelector } from "./languageSelector.js";
+import * as lang from "./languageSelector.js";
 import translations from "./translations.json" assert { type: "json" };
 
 // Game Initialization
@@ -37,10 +36,10 @@ document.addEventListener("DOMContentLoaded", () => {
   TopLeftContainer.appendChild(dropdownContainer);
 
   // Step 3: Initialize the dropdown with the dynamically created container
-  initLanguageSelector(dropdownContainer);
+  lang.initLanguageSelector(dropdownContainer);
 
   // Step 4: Optionally log the saved language or apply translations
-  currentLanguage = getSavedLanguage();
+  currentLanguage = lang.getSavedLanguage();
   console.log(currentLanguage);
 });
 
@@ -397,17 +396,13 @@ for (let key of availablePlants) {
 
 //Progress Buttons
 const undo = document.createElement("button");
-undo.textContent = localize("Undo_msg", currentLanguage, translations);
-undo.addEventListener("click", () => {
-  Undo();
-});
+undo.textContent = lang.localize("Undo_msg", currentLanguage, translations);
+undo.addEventListener("click", Undo);
 PlantContainer.appendChild(undo);
 
 const redo = document.createElement("button");
 redo.textContent = "Redo";
-redo.addEventListener("click", () => {
-  Redo();
-});
+redo.addEventListener("click", Redo);
 PlantContainer.appendChild(redo);
 
 const save = document.createElement("button");
