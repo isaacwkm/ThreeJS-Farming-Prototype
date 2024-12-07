@@ -43,6 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
   currentLanguage = getSavedLanguage();
   console.log(currentLanguage);
 });
+currentLanguage = getSavedLanguage();
 
 function scenarioLoader(scenario) {
   width = scenario.grid_size[0];
@@ -397,6 +398,7 @@ for (let key of availablePlants) {
 
 //Progress Buttons
 const undo = document.createElement("button");
+console.log(currentLanguage);
 undo.textContent = localize("Undo_msg", currentLanguage, translations);
 undo.addEventListener("click", () => {
   Undo();
