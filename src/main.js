@@ -499,10 +499,10 @@ function handleLangR2L(
   rightTextComponent = String,
   language = String,
 ) {
-  if (language == "arab") {
-    stringR2L(leftTextComponent, rightTextComponent, 1);
+  if (language == "arab") { // List all right-to-left languages here
+    return stringR2L(leftTextComponent, rightTextComponent, 1);
   } else {
-    stringR2L(leftTextComponent, rightTextComponent, 0);
+    return stringR2L(leftTextComponent, rightTextComponent, 0);
   }
 }
 
