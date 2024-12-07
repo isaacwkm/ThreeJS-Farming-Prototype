@@ -2,16 +2,16 @@
     "name": "cmpm-121-final-pwa",
     "icons": [
         {
-            "src": "/cmpm-121-final-threejs/public/icon-192.png",
+            "src": "/public/icon-192.png",
             "type": "image/png",
             "sizes": "192x192"
         },
         {
-            "src": "/cmpm-121-final-threejs/public/icon-512.png",
+            "src": "/public/icon-512.png",
             "type": "image/png",
             "sizes": "512x512"
         }
     ],
-    "start_url": "/index.html",
+    "start_url": "/cmpm-121-final-threejs/index.html",
     "display": "standalone"
 }

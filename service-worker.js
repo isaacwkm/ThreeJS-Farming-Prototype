@@ -1,18 +1,18 @@
 const cacheName = "cmpm121pwa-v1";
 const appShellFiles = [
-    "/cmpm-121-final-threejs",
-    "/cmpm-121-final-threejs/index.html",
-    "/cmpm-121-final-threejs/src/main.js",
-    "/cmpm-121-final-threejs/src/Renderer.js",
-    "/cmpm-121-final-threejs/src/MeshManagers.js",
-    "/cmpm-121-final-threejs/languageSelector.js",
-    "/cmpm-121-final-threejs/src/models.js",
-    "/cmpm-121-final-threejs/src/plants.js",
-    "/cmpm-121-final-threejs/src/scenarios.js",
-    "/cmpm-121-final-threejs/src/translations.json",
-    "/cmpm-121-final-threejs/src/style.css",
-    "/cmpm-121-final-threejs/public/icon-192.png",
-    "/cmpm-121-final-threejs/public/icon-512.png"
+    "/",
+    "/index.html",
+    "/src/main.js",
+    "/src/Renderer.js",
+    "/src/MeshManagers.js",
+    "/languageSelector.js",
+    "/src/models.js",
+    "/src/plants.js",
+    "/src/scenarios.js",
+    "/src/translations.json",
+    "/src/style.css",
+    "/public/icon-192.png",
+    "/public/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
