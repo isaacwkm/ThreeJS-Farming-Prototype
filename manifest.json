@@ -1,17 +1,17 @@
 {
     "name": "cmpm-121-final-pwa",
-    "icon": [
+    "icons": [
         {
-            "src": "/public/icon-192.png",
+            "src": "/project/public/icon-192.png",
             "type": "image/png",
             "sizes": "192x192"
         },
         {
-            "src": "/public/icon-512.png",
+            "src": "/project/public/icon-512.png",
             "type": "image/png",
             "sizes": "512x512"
         }
     ],
-    "start-url": "/index.html",
+    "start_url": "/index.html",
     "display": "standalone"
 }

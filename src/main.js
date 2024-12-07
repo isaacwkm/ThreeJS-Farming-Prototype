@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
   currentLanguage = lang.getSavedLanguage();
   console.log(currentLanguage);
 });
-currentLanguage = getSavedLanguage();
+currentLanguage = lang.getSavedLanguage();
 
 function scenarioLoader(scenario) {
   width = scenario.grid_size[0];
@@ -398,7 +398,7 @@ for (let key of availablePlants) {
 //Progress Buttons
 const undo = document.createElement("button");
 console.log(currentLanguage);
-undo.textContent = localize("Undo_msg", currentLanguage, translations);
+undo.textContent = lang.localize("Undo_msg", currentLanguage, translations);
 undo.addEventListener("click", () => {
   Undo();
 });
@@ -478,3 +478,13 @@ function drawDayCounter() {
 GameStateInfoContainer.appendChild(drawDayCounter());
 
 autosavePrompt();
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/project/service-worker.js")
+    .then((registration) => {
+      console.log("Service worker registered with scope: ", registration.scope);
+    })
+    .catch((error) => {
+      console.log("Service worker registration failed: ", error);
+    });
+}
