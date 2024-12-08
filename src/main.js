@@ -309,8 +309,12 @@ renderer.lookAt(gridMeshManager.getPosition());
 
 // Player Rendering
 const playerMeshManager = new PlayerView(0, 0);
-renderer.addToScene(playerMeshManager.getPlayerMesh());
-
+const checkPlayerMesh = setInterval(() => {
+  if (playerMeshManager.getPlayerMesh()) {
+      renderer.addToScene(playerMeshManager.getPlayerMesh()); 
+      clearInterval(checkPlayerMesh); 
+  }
+}, 100);
 // Helper Functions
 
 const plantMeshManager = new PlantViews(renderer.scene);
