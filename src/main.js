@@ -489,7 +489,6 @@ function drawDayCounter() {
 
   // Add a listener for the dayChanged event
   window.addEventListener("dayChanged", () => {
-    const dayCounterText = document.createElement("p"); // Use paragraph tag for text
     const currentDayMsg = lang.localize(
       "Current_Day",
       currentLanguage,
@@ -501,6 +500,8 @@ function drawDayCounter() {
 
   return dayCounterText;
 }
+
+GameStateInfoContainer.appendChild(drawDayCounter());
 
 function handleLangR2L(
   leftTextComponent = String,
@@ -526,7 +527,5 @@ function stringR2L(
     return str += leftTextComponent + rightTextComponent;
   }
 }
-
-GameStateInfoContainer.appendChild(drawDayCounter());
 
 autosavePrompt();
