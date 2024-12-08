@@ -389,7 +389,7 @@ const PlantContainer = document.createElement("div");
 document.body.appendChild(PlantContainer);
 
 //resusable button logic
-function gameButtons({label, callback, container, localize = false}) {
+function gameButtons({ label, callback, container, localize = false }) {
   const button = document.createElement("button");
 
   if (localize) {
@@ -456,28 +456,32 @@ PlantContainer.appendChild(load);
 const CommandContainer = document.createElement("div2");
 document.body.appendChild(CommandContainer);
 
-CommandContainer.appendChild(gameButtons({label: "⬅️",
+CommandContainer.appendChild(gameButtons({
+  label: "⬅️",
   callback: () => handleKeyboardInput("ArrowLeft"),
   container: CommandContainer,
-  })
+})
 );
 
-CommandContainer.appendChild(gameButtons({label: "➡️",
+CommandContainer.appendChild(gameButtons({
+  label: "➡️",
   callback: () => handleKeyboardInput("ArrowRight"),
   container: CommandContainer,
-  })
+})
 );
 
-CommandContainer.appendChild(gameButtons({label: "⬆️",
+CommandContainer.appendChild(gameButtons({
+  label: "⬆️",
   callback: () => handleKeyboardInput("ArrowUp"),
   container: CommandContainer,
-  })
+})
 );
 
-CommandContainer.appendChild(gameButtons({label: "⬇️",
+CommandContainer.appendChild(gameButtons({
+  label: "⬇️",
   callback: () => handleKeyboardInput("ArrowDown"),
   container: CommandContainer,
-  })
+})
 );
 
 CommandContainer.appendChild(
