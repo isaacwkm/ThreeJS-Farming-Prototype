@@ -6,7 +6,7 @@ export const languages = {
   };
   
   // Default language if nothing is saved
-  const DEFAULT_LANGUAGE = "chi";
+  const DEFAULT_LANGUAGE = "eng";
   
   /**
    * Fetches the saved language from `localStorage`.
