@@ -1,7 +1,5 @@
+
 import * as THREE from "three"
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
-
-
 
 export class GridView {
     constructor(rows, cols) {
@@ -41,55 +39,24 @@ export class PlayerView {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.playerMesh = null;
-        this.loadModel();
 
-    }
+        const playerMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
+        const playerGeometry = new THREE.BoxGeometry(0.9, 0.9, 0.9);
+        this.playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
 
-    loadModel() {
-        const loader  = new FBXLoader();
-        const textureLoad = new THREE.TextureLoader();
-
-        const texture = textureLoad.load('/project/assets/Player.png');
-        loader.load('/project/assets/Players.fbx',
-            (fbx) => {
-                fbx.traverse((child) => {
-                    if (child.isMesh) {
-                        child.material = new THREE.MeshStandardMaterial({map: texture,});
-                    }
-                });
-
-                fbx.scale.set(0.0065, 0.0065, 0.0065); 
-                fbx.position.set(this.x, 0.5, this.y); 
-                this.playerMesh = fbx; 
-
-                this.rotatePlayer(0, Math.PI / 0.67, 0);
-            },
-            undefined,
-            undefined 
-        );
+        this.playerMesh.position.set(this.x, 0.5, this.y);
     }
 
     updatePosition(newX, newY) {
         this.x = newX;
         this.y = newY;
-        if (this.playerMesh) {
-            this.playerMesh.position.set(this.x, 0.5, this.y);
-        }
-    }
-
-    rotatePlayer(xRotation, yRotation, zRotation) {
-        if (this.playerMesh) {
-            this.playerMesh.rotation.x = xRotation;
-            this.playerMesh.rotation.y = yRotation;
-            this.playerMesh.rotation.z = zRotation;
-        }
+        this.playerMesh.position.set(this.x, 0.5, this.y);
     }
 
     getPlayerMesh() {
         return this.playerMesh;
     }
-};
+}
 
 const plantSpecs = {
     bean: [
