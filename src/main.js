@@ -388,22 +388,37 @@ animate();
 const PlantContainer = document.createElement("div");
 document.body.appendChild(PlantContainer);
 
-function drawPlantButton(label) {
+//resusable button logic
+function gameButtons({label, callback, container, localize = false}) {
   const button = document.createElement("button");
-  let key = label;
-  key += "_button"; // Check translations.json for entries containing "_button" .
-  button.textContent = lang.localize(key, currentLanguage, translations);
-  button.addEventListener("click", () => {
-    currentPlantType = label.toLowerCase();
-    console.log(`Selected: ${label}`);
-  });
+
+  if (localize) {
+    let key = label;
+    key += "_button";
+    button.textContent = lang.localize(key, currentLanguage, translations);
+  } else {
+    button.textContent = label;
+  }
+
+  button.addEventListener("click", callback);
+  container.appendChild(button);
+
   return button;
 }
 
-// Add buttons to the container
+//plant buttons
 for (let key of availablePlants) {
-  PlantContainer.appendChild(drawPlantButton(key));
+  gameButtons({
+    label: key,
+    localize: true,
+    callback: () => {
+      currentPlantType = key.toLowerCase();
+      console.log(`Selected: ${key}`);
+    },
+    container: PlantContainer,
+  });
 }
+
 
 //Progress Buttons
 const undo = document.createElement("button");
@@ -437,37 +452,42 @@ load.addEventListener("click", () => {
 });
 PlantContainer.appendChild(load);
 
+//command buttons 
 const CommandContainer = document.createElement("div2");
 document.body.appendChild(CommandContainer);
 
-function drawCommandButton(label, callback) {
-  const button = document.createElement("button");
-  button.textContent = `${label}`;
-  button.addEventListener("click", () => {
-    console.log(`Selected: ${label}`);
-    callback();
-  });
-  return button;
-}
+CommandContainer.appendChild(gameButtons({label: "⬅️",
+  callback: () => handleKeyboardInput("ArrowLeft"),
+  container: CommandContainer,
+  })
+);
+
+CommandContainer.appendChild(gameButtons({label: "➡️",
+  callback: () => handleKeyboardInput("ArrowRight"),
+  container: CommandContainer,
+  })
+);
+
+CommandContainer.appendChild(gameButtons({label: "⬆️",
+  callback: () => handleKeyboardInput("ArrowUp"),
+  container: CommandContainer,
+  })
+);
+
+CommandContainer.appendChild(gameButtons({label: "⬇️",
+  callback: () => handleKeyboardInput("ArrowDown"),
+  container: CommandContainer,
+  })
+);
 
 CommandContainer.appendChild(
-  drawCommandButton("⬅️", () => handleKeyboardInput("ArrowLeft")),
+  gameButtons({
+    label: lang.localize("Next_Day", currentLanguage, translations),
+    callback: () => handleKeyboardInput("Enter"),
+    container: CommandContainer,
+  })
 );
-CommandContainer.appendChild(
-  drawCommandButton("➡️", () => handleKeyboardInput("ArrowRight")),
-);
-CommandContainer.appendChild(
-  drawCommandButton("⬆️", () => handleKeyboardInput("ArrowUp")),
-);
-CommandContainer.appendChild(
-  drawCommandButton("⬇️", () => handleKeyboardInput("ArrowDown")),
-);
-CommandContainer.appendChild(
-  drawCommandButton(
-    lang.localize("Next_Day", currentLanguage, translations),
-    () => handleKeyboardInput("Enter"),
-  ),
-);
+
 
 // Add a new container for game state info
 const GameStateInfoContainer = document.createElement("topRightScreen"); // Custom tag
