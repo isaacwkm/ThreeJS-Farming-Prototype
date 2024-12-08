@@ -242,19 +242,28 @@ function Redo() {
   }
 }
 
+
 function createSave(key) {
+  if (!key || key.trim() === "" ) {
+    console.error("Input cannot be empty");
+    alert("Input cannot be empty");
+    return;
+  }
+  if (/[^a-zA-Z0-9-_]/.test(key)) {
+    console.error("");
+    alert("");
+    return;
+  }
   const saveFile = {
     playerPos: { x: playerCharacter.x, y: playerCharacter.y },
     gridState: grid.serialize(),
     plantMap: Array.from(plantsOnGrid.entries()),
     gameState: { currentDay, adultsHarvested },
-    timestamp: new Date().toISOString(),
+    timestamp: new DataTransfer().toISOString()
   };
   const saveData = JSON.stringify(saveFile);
   localStorage.setItem(key, saveData);
-  if (key !== "autosave") {
-    console.log(`Game saved under ${key}`);
-  }
+  console.log(`Game saved under '${key}'`);
 }
 
 function copyDataFromFile(saveFile) {
@@ -280,20 +289,28 @@ function listSaves() {
   }
 }
 
+
 function loadSave(key) {
-  const saveData = localStorage.getItem(key);
-  if (!saveData) {
-    console.error(`No save file found under ${key}`);
+  if (!key || key.trim() === "") {
+    alert("Please enter a valid save name");
     return;
   }
+
+  const saveData = localStorage.getItem(key);
+  if (!saveData) {
+    alert(`No save file found within the name '${key}'.`);
+    return;
+  }
+
   const saveFile = JSON.parse(saveData);
   undoStack.splice(0, undoStack.length);
   redoStack.splice(0, redoStack.length);
 
   copyDataFromFile(saveFile);
   notify("scene-changed");
-  console.log(`Game loaded from save ${key}`);
+  console.log(`Game loaded from save '${key}'.`)
 }
+
 
 function autosavePrompt() {
   if (localStorage.getItem("autosave")) {
