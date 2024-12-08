@@ -250,8 +250,7 @@ function createSave(key) {
     return;
   }
   if (/[^a-zA-Z0-9-_]/.test(key)) {
-    console.error("");
-    alert("");
+    alert("Invalid characters dectected");
     return;
   }
   const saveFile = {
@@ -259,7 +258,8 @@ function createSave(key) {
     gridState: grid.serialize(),
     plantMap: Array.from(plantsOnGrid.entries()),
     gameState: { currentDay, adultsHarvested },
-    timestamp: new DataTransfer().toISOString()
+    timestamp: new Date().toISOString(),
+
   };
   const saveData = JSON.stringify(saveFile);
   localStorage.setItem(key, saveData);
