@@ -33,15 +33,10 @@ self.addEventListener("install", (e) => {
 
 self.addEventListener("fetch", (e) => {
     e.respondWith(
-        (async () => {
-            const cachedResponse = await caches.match(e.request);
+        caches.match(e.request).then(cachedResponse => {
             console.log(`[Service Worker] Fetching resource: ${e.request.url}`);
-            if (cachedResponse == undefined) return cachedResponse;
-            
-            const fetchedResponse = await fetch(e.request);
-            const cache = await caches.open(cacheName);
-            console.log(`[Service Worker] Caching new resource: ${e.request.url}`);
-            cache.add(e.request, fetchedResponse.clone())
-        })()
+            if (cachedResponse) return cachedResponse;
+            return fetch(e.request);
+        })
     );
 })

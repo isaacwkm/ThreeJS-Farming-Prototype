@@ -1,3 +1,22 @@
+# Devlog Entry - 12/8/2024
+
+## How we satisfied the requirements
+## F0 + F1 + F2
+No major changes were made.
+
+## F3.a
+
+## F3.b
+
+## Mobile Installation
+12/7/2024 - Mobile installation is managed through a Progressive Web App structure that makes use of service workers to store important files needed for execution. The service worker is installed after being registered and pulling the required resources into a newly created cache. The PWA can then make use of this cache to grab resources as opposed to fetching them over the network, allowing for offline play. The creation of a manifest that contained useful information about the app itself was also needed for the app's presentation. Useful resources that helped during the implementation process were as follows: </br>
+
+MDN Documentation: https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Tutorials/js13kGames/App_structure</br>
+Developer PWA Tutorial: https://developers.google.com/codelabs/pwa-training/pwa03--going-offline#0
+
+## Mobile Play
+12/8/2024 - 
+
 # Devlog Entry - 12/4/2024
 
 ## How we satisfied the requirements

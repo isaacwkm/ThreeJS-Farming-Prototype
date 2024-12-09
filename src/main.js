@@ -258,8 +258,6 @@ function createSave(key) {
     gridState: grid.serialize(),
     plantMap: Array.from(plantsOnGrid.entries()),
     gameState: { currentDay, adultsHarvested },
-    timestamp: new Date().toISOString(),
-
   };
   const saveData = JSON.stringify(saveFile);
   localStorage.setItem(key, saveData);
