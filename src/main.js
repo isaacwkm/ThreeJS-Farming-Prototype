@@ -457,7 +457,7 @@ PlantContainer.appendChild(redo);
 const save = document.createElement("button");
 save.textContent = lang.localize("Save_msg", currentLanguage, translations);
 save.addEventListener("click", () => {
-  const key = prompt("Enter save name");
+  const key = prompt(lang.localize("save_prompt", currentLanguage, translations));
   createSave(key);
 });
 PlantContainer.appendChild(save);

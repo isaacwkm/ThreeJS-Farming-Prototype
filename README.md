@@ -4,10 +4,11 @@
 ## F0 + F1 + F2
 No major changes were made.
 
-## F3.a
-12/8/2024 - As needed, internationalization is implmented through making sure that the text within the game are available in many different langauges such as Chinese, Arabic and of course giving a more accessible approach for players. A button drop down is located on the window for players to choose between in real time through the playthrough all thanks to the languageSelector.js which is made to retrive the translations while in game and translations.json file as it includes every text in every language in a clean format allowing more possible languages to be added for future use. 
-## F3.b
+## Internationalization
+12/8/2024 - As needed, internationalization is impelmented through making sure that the text within the game is available in many different langauges and giving a more accessible approach for players. Hard-coded strings are now replaced with a localization request that looks up the corresponding text in a provided translations file. This file contains several translations for every string that will be shown to the player. Adding support for a new language simply involves including new internal translations within the file for each string.
 
+## Localization
+12/8/2024 - In its current state, the game supports English, Chinese as our logographic script, and Arabic as our right-to-left script. A dropdown menu is now located on the window for players to choose specific languages. The handling for this menu is set within its own module which also exports the functionality for localization to any objects that display text in game.
 
 ## Mobile Installation
 12/7/2024 - Mobile installation is managed through a Progressive Web App structure that makes use of service workers to store important files needed for execution. The service worker is installed after being registered and pulling the required resources into a newly created cache. The PWA can then make use of this cache to grab resources as opposed to fetching them over the network, allowing for offline play. The creation of a manifest that contained useful information about the app itself was also needed for the app's presentation. Useful resources that helped during the implementation process were as follows: </br>
@@ -17,6 +18,8 @@ Developer PWA Tutorial: https://developers.google.com/codelabs/pwa-training/pwa0
 
 ## Mobile Play
 12/8/2024 - 
+
+## Reflection
 
 # Devlog Entry - 12/4/2024
 
@@ -65,7 +68,7 @@ The basic use of this DSL lets you define the name and emoji that a specific pla
 12/4/2024 - As we explained before, our platform switch was to start from TypeScript and to move to ThreeJS. Since TypeScript is a slightly modified version of JavaScript, adjusting our scripting for it wasn't too bad. The biggest redesigning of our code was related to porting our 2D visual gameplay into a 3D space. The 2D farm grid that we previously had is now depicted as a 3D grid with an angled camera overseeing the player space, as well as our player being represented by a 3D cube. Plants are also no longer emojis that grow, but rather modeled and their growth is represented by their stems changing color. UI elements such as gameplay information or buttons are rendered on the screen locally and not within the actual 3D space.
 
 ## Reflection
-We wouldn't say that our plan has changed too much when it came to completing our F2 requirements.The largest hurdle we faced was reimplementing our game into another game engine and finding the motivation to work on the project with the oncoming holiday break. Having to maintain a balance between these factors along with finals in other classes often caused our team to have communication issues and working effectively towards completing F2 by the initial deadline. In order to compensate for this, we coordinated who would work on what within the project and taking time to catch everyone up to speed about the final's progress. Compared to how bare bones the requirements of the game are, we felt that it would be important to supply the player with more agency as to how they can play the game, along with understanding what they need to do.
+We wouldn't say that our plan has changed too much when it came to completing our F2 requirements. The largest hurdle we faced was reimplementing our game into another game engine and finding the motivation to work on the project with the oncoming holiday break. Having to maintain a balance between these factors along with finals in other classes often caused our team to have communication issues and working effectively towards completing F2 by the initial deadline. In order to compensate for this, we coordinated who would work on what within the project and taking time to catch everyone up to speed about the final's progress. Compared to how bare bones the requirements of the game are, we felt that it would be important to supply the player with more agency as to how they can play the game, along with understanding what they need to do.
 
 # Devlog Entry - 11/27/2024
 
