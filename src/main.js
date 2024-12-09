@@ -421,11 +421,17 @@ function gameButtons({ label, callback, container, localize = false }) {
   return button;
 }
 
-//plant buttons
-for (let key of availablePlants) {
+// Plant Buttons
+for (const key of availablePlants) {
+  const icon = Plant.getIcon(key);
+  const localizedLabel = lang.localize(`${key}_button`, currentLanguage, translations);
+
+  // Adjusts it so the emoji is on the right for Arabic as its a RTL language
+  const isRTL = currentLanguage === "arab";
+  const label = isRTL ? `${localizedLabel} ${icon}` : `${icon} ${localizedLabel}`; 
+
   gameButtons({
-    label: key,
-    localize: true,
+    label,
     callback: () => {
       currentPlantType = key.toLowerCase();
       console.log(`Selected: ${key}`);

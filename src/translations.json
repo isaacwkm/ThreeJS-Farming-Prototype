@@ -67,27 +67,27 @@
   },
 
   "bean_button": {
-    "eng": "🫘 bean",
-    "chi": "🫘 豆子",
-    "arab": "فاصوليا 🫘",
+    "eng": "bean",
+    "chi": "豆子",
+    "arab": "فاصوليا",
     "note": "Found in plants.js on line 3 with comment: "
   },
   "corn_button": {
-    "eng": "🌽 corn",
-    "chi": "🌽 玉米",
-    "arab": "ذرة 🌽",
+    "eng": "corn",
+    "chi": "玉米",
+    "arab": "ذرة",
     "note": "Found in plants.js on line 13 with comment: "
   },
   "potato_button": {
-    "eng": "🥔 potato",
-    "chi": "🥔土豆",
-    "arab": "بطاطا 🥔",
+    "eng": "potato",
+    "chi": "土豆",
+    "arab": "بطاطا",
     "note": "Found in plants.js on line 22 with comment: "
   },
   "onion_button": {
-    "eng": "🧅 onion",
-    "chi": "🧅 洋葱",
-    "arab": "بصل 🧅",
+    "eng": "onion",
+    "chi": "洋葱",
+    "arab": "بصل",
     "note": "Found in plants.js on line 31 with comment: "
   },
   "last_translation_do_not_delete": {
