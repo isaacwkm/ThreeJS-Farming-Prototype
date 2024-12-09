@@ -22,6 +22,7 @@ const specialEvents = [];
 const plantsOnGrid = new Map();
 let currentLanguage;
 
+
 // On game startup or app initialization
 document.addEventListener("DOMContentLoaded", () => {
   // Step 1: Dynamically create the language dropdown container
@@ -373,6 +374,26 @@ renderer.onClick((intersect) => {
   farmTheLand(gridX, gridY);
 });
 
+// Raycast on hover
+renderer.onHover((intersect) => {
+  const point = intersect.point;
+  const gridX = Math.round(point.x);
+  const gridY = Math.round(point.z);
+
+  updateHoveredTileInfo(gridX, gridY);
+});
+
+function updateHoveredTileInfo(x, y) {
+  if (x < 0 || x >= grid.GRID_WIDTH || y < 0 || y >= grid.GRID_HEIGHT) {
+    hoverInfoContainer.textContent = "";
+    return;
+  }
+
+  const cell = grid.readCell(x, y);
+  const cellDesc = `Cell at (${x}, ${y}): <br>Sun: ${cell.sun} <br>Water: ${cell.water} <br>Sowed: ${cell.sowed ? "Yes" : "No"}`;
+
+  hoverInfoContainer.innerHTML = cellDesc;
+}
 // Event Listeners
 window.addEventListener("keydown", (e) => {
   handleKeyboardInput(e.key);
@@ -547,6 +568,11 @@ function drawDayCounter() {
 }
 
 GameStateInfoContainer.appendChild(drawDayCounter());
+
+const hoverInfoContainer = document.createElement("p");
+hoverInfoContainer.className = "hover-info"; // Style this in your CSS
+GameStateInfoContainer.appendChild(hoverInfoContainer);
+
 
 function handleLangR2L(
   leftTextComponent = String,

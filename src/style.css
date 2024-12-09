@@ -86,6 +86,25 @@ h1 {
   white-space: nowrap; /* Ensures text NEVER wraps to the next line */
 }
 
+.hover-info {
+  width: 100px;
+  border-radius: 5px;
+  border: 2px solid rgb(44, 223, 167);
+  position: fixed; 
+  top: 110px;       
+  right: 10px;    
+  background-color: rgba(255, 255, 255, 1); 
+  color: black;    
+  padding: 10px 20px; 
+  border-radius: 5px; 
+  font-size: 16px;   
+  font-family: Arial, sans-serif; 
+  font-weight: bold;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); 
+
+  display: inline-block;
+  white-space: nowrap; 
+}
 /* Container for the language dropdown */
 .language-dropdown {
   position: relative; /* Ensures the dropdown menu is positioned relative to the button */
