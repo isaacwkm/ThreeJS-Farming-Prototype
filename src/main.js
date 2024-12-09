@@ -573,6 +573,13 @@ const hoverInfoContainer = document.createElement("p");
 hoverInfoContainer.className = "hover-info"; // Style this in your CSS
 GameStateInfoContainer.appendChild(hoverInfoContainer);
 
+// Update tile info at the start of the game
+updateHoveredTileInfo(playerCharacter.x, playerCharacter.y);
+// Update tile info whenever the day changes.
+window.addEventListener("dayChanged", () => {
+  updateHoveredTileInfo(playerCharacter.x, playerCharacter.y);
+});
+
 
 function handleLangR2L(
   leftTextComponent = String,
