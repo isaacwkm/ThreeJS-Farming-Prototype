@@ -5,8 +5,9 @@
 No major changes were made.
 
 ## F3.a
-
+12/8/2024 - As needed, internationalization is implmented through making sure that the text within the game are available in many different langauges such as Chinese, Arabic and of course giving a more accessible approach for players. A button drop down is located on the window for players to choose between in real time through the playthrough all thanks to the languageSelector.js which is made to retrive the translations while in game and translations.json file as it includes every text in every language in a clean format allowing more possible languages to be added for future use. 
 ## F3.b
+
 
 ## Mobile Installation
 12/7/2024 - Mobile installation is managed through a Progressive Web App structure that makes use of service workers to store important files needed for execution. The service worker is installed after being registered and pulling the required resources into a newly created cache. The PWA can then make use of this cache to grab resources as opposed to fetching them over the network, allowing for offline play. The creation of a manifest that contained useful information about the app itself was also needed for the app's presentation. Useful resources that helped during the implementation process were as follows: </br>

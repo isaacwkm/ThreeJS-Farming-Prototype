@@ -171,6 +171,32 @@ button:focus-visible {
   background-color: lightgray;
 }
 
+@media (max-width: 720px) {
+  /* Align buttons at the bottom for mobile */
+  div,
+  div2 {
+    position: fixed;
+    bottom: 20px; /* Place buttons at the bottom */
+    left: 50%;
+    transform: translateX(-50%); /* Center align horizontally */
+    flex-direction: row; /* Arrange buttons horizontally */
+    gap: 10px; /* Add spacing between buttons */
+  }
+
+  topRightScreen {
+    top: auto; /* Reset top positioning */
+    bottom: 80px; /* Adjust based on button height */
+    right: 20px; /* Keep close to the right edge */
+  }
+
+  topLeftScreen {
+    top: auto; /* Reset top positioning */
+    bottom: 80px; /* Adjust based on button height */
+    left: 20px; /* Keep close to the left edge */
+  }
+}
+
+
 div {
   position: fixed; 
   right: 20px; 
