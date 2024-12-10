@@ -72,19 +72,20 @@ function checkSpecialEvents(currentDay) {
   );
   for (const event of currentEvents) {
     console.log(`Special Event: ${event.description}`);
+    console.log(event.effects);
     applySpecialEvent(event.effects);
   }
 }
 
 function applySpecialEvent(effects) {
   for (const effect of effects) {
-    switch (effect.type) {
+    switch (effect[0]) {
       case "sun":
-        grid.increaseSunRange(effect.change);
-        grid.setGridValue("sun", effect.change);
+        grid.increaseSunRange(effect[1]);
+        grid.setGridValue("sun", effect[1]);
         break;
       case "water":
-        grid.setGridValue("water", effect.change);
+        grid.setGridValue("water", effect[1]);
         break;
     }
   }
@@ -384,13 +385,11 @@ renderer.onHover((intersect) => {
 });
 
 function updateHoveredTileInfo(x, y) {
-  if (x < 0 || x >= grid.GRID_WIDTH || y < 0 || y >= grid.GRID_HEIGHT) {
+  if (x < 0 || x >= width || y < 0 || y >= height) {
     hoverInfoContainer.textContent = "";
     return;
   }
-
-  const cell = grid.readCell(x, y);
-  const cellDesc = `Cell at (${x}, ${y}): <br>Sun: ${cell.sun} <br>Water: ${cell.water} <br>Sowed: ${cell.sowed ? "Yes" : "No"}`;
+  const cellDesc = `Cell at (${x}, ${y}): <br>Sun: ${grid.getSunAt(x, y)} <br>Water: ${grid.getWaterAt(x, y)}`;
 
   hoverInfoContainer.innerHTML = cellDesc;
 }
