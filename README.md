@@ -4,21 +4,21 @@
 ## F0 + F1 + F2
 No major changes were made.
 
-## Internationalization
+## F3.a Internationalization
 12/8/2024 - As needed, internationalization is impelmented through making sure that the text within the game is available in many different langauges and giving a more accessible approach for players. Hard-coded strings are now replaced with a localization request that looks up the corresponding text in a provided translations file. This file contains several translations for every string that will be shown to the player. Adding support for a new language simply involves including new internal translations within the file for each string.
 
-## Localization
+## F3.b Localization
 12/8/2024 - In its current state, the game supports English, Chinese as our logographic script, and Arabic as our right-to-left script. A dropdown menu is now located on the window for players to choose specific languages. The handling for this menu is set within its own module which also exports the functionality for localization to any objects that display text in game. The translation data is stored in a JSON file and the previously hard-coded English messages were replaced with tags that represent the message (e.g. "save_prompt" for "Do you want to save?"). The hard-coded English text was replaced with function calls to LanguageSelector's localize() function, which takes the original message tag, current language, and the loaded JSON file as parameters to return a string of the correct localization of the message.
 
 A specialized R2L ("Right 2 Left") function was also created to handle dynamic text compenents in Right-to-Left scripts (Arabic for example). Some text components would have to be displayed differently logically, as when there is a dynamic component in a message (for example "Day Counter: 1", where the number is dynamic) the dynamic portion would have to be displayed on the opposite side. R2L takes two string components and swaps their position. A more abstracted "handleR2L(str1, str2, currentLanguage)" function also does the same thing but can take the current language as a parameter and determine for the user whether the language needs to be swapped right-to-left (calling the function with a L2R as the current language will return the identical string). This requires a list of R2L languages to be maintained in code for the function to determine if it is a R2L script, but it allows for code to remain simple in terms of not having to hard-code alternate case logic for each text with dynamic components, and removes the need for the user to determine if the language is R2L or not.
 
-## Mobile Installation
+## F3.c Mobile Installation
 12/7/2024 - Mobile installation is managed through a Progressive Web App structure that makes use of service workers to store important files needed for execution. The service worker is installed after being registered and pulling the required resources into a newly created cache. The PWA can then make use of this cache to grab resources as opposed to fetching them over the network, allowing for offline play. The creation of a web manifest that contained useful information about the app itself was also needed for the app's presentation. Useful resources that helped during the implementation process were as follows: </br>
 
 MDN Documentation: https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Tutorials/js13kGames/App_structure</br>
 Developer PWA Tutorial: https://developers.google.com/codelabs/pwa-training/pwa03--going-offline#0
 
-## Mobile Play
+## F3.d Mobile Play
 12/8/2024 - For mobile play, we had to make sure that the UI offered alternate ways of player interaction besides the keyboard and mouse. To this end, the event handlers that normally listen for input from the keyboard are also tied to buttons that players can tap, allowing for full interaction with the underlying functionality. Furthermore, we had to take into account how elements on the screen were positioned so they wouldn't interfere with player operation on a different screen size. We had initially tried to incorporate this dynamically within CSS, though for sake of time and sanity, we simply just altered the UI design with both of our primary screens in mind.
 
 ## Reflection
