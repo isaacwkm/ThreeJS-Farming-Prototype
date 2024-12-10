@@ -71,7 +71,7 @@ function checkSpecialEvents(currentDay) {
     event.day == currentDay
   );
   for (const event of currentEvents) {
-    confirm(`Special Event: ${event.description}`);
+    confirm(lang.localize(event.description, currentLanguage, translations));
     console.log(event.effects);
     applySpecialEvent(event.effects);
   }
@@ -92,7 +92,7 @@ function applySpecialEvent(effects) {
 }
 
 const config = YAML.load(yamlString);
-scenarioLoader(config.drought);
+scenarioLoader(config.storm);
 console.log(specialEvents);
 
 const grid = new Grid(width, height);
@@ -398,8 +398,22 @@ function updateHoveredTileInfo(x, y) {
     return;
   }
 
-  const desc = lang.localize("cellDesc", currentLanguage, translations)
-  const cellDesc = `Cell at (${x}, ${y}): <br>Sun: ${grid.getSunAt(x, y)} <br>Water: ${grid.getWaterAt(x, y)}`;
+  const cellCoords = lang.handleLangR2L(
+    lang.localize("Current_Cell", currentLanguage, translations),
+    `(${x}, ${y})`,
+    currentLanguage
+  );
+  const sunLevel = lang.handleLangR2L(
+    lang.localize("Sun", currentLanguage, translations),
+    `${grid.getSunAt(x, y)}`,
+    currentLanguage
+  );
+  const waterLevel = lang.handleLangR2L(
+    lang.localize("Water", currentLanguage, translations),
+    `${grid.getWaterAt(x, y)}`,
+    currentLanguage
+  );
+  const cellDesc = `${cellCoords} <br>${sunLevel} <br>${waterLevel}`;
 
   hoverInfoContainer.innerHTML = cellDesc;
 }

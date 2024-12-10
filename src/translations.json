@@ -11,6 +11,16 @@
     "arab": "أدخل اسم الحفظ",
     "note": "Found in main.js on line 391 and 400 with comment: "
   },
+  "Drought": {
+    "eng": "Special Event: Drought",
+    "chi": "特别事件：干旱",
+    "arab": "حدث خاص: الجفاف"
+  },
+  "Storm": {
+    "eng": "Special Event: Storm",
+    "chi": "特别活动：风暴",
+    "arab": "حدث خاص: عاصفة"
+  },
   "Undo_msg": {
     "eng": "Undo",
     "chi": "撤销",
@@ -52,6 +62,21 @@
     "chi": "当前天数: ",
     "arab": " :اليوم الحالي",
     "note": "#NEEDS_R2L_SUPPORT (already implemented) IN CODE. Found in main.js on line 441 and 448 with comment: "
+  },
+  "Current_Cell": {
+    "eng": "Cell: ",
+    "chi": "网格单元: ",
+    "arab": " :خلية الشبكة"
+  },
+  "Sun": {
+    "eng": "Sun: ",
+    "chi": "阳光: ",
+    "arab": " :ضوء الشمس"
+  },
+  "Water": {
+    "eng": "Water: ",
+    "chi": "水分: ",
+    "arab": " :رُطُوبَة"
   },
   "Invalid_Scenario_UNUSED": {
     "eng": "Invalid Scenario: Plant unrecognized",
