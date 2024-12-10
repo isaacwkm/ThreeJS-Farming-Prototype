@@ -335,8 +335,16 @@ function checkScenarioWin() {
     currentDay <= plantsRequirement.time;
   const lose = currentDay > plantsRequirement.time;
   if (win) {
+    const message = lang.localize("win_message", currentLanguage, translations);
+    if (confirm(message)) {
+      window.location.reload();
+    }
     notify("win");
   } else if (lose) {
+    const message = lang.localize("lose_message", currentLanguage, translations);
+    if (confirm(message)) {
+      window.location.reload();
+    }
     notify("lose");
   }
 }

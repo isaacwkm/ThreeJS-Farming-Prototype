@@ -90,6 +90,18 @@
     "arab": "بصل",
     "note": "Found in plants.js on line 31 with comment: "
   },
+  "win_message": {
+    "eng": "You Win!",
+    "chi": "你赢了!",
+    "arab": "لقد فزت!",
+    "note": "Found in main.js on line 338 with comment: "
+  },
+  "lose_message": {
+    "eng": "You Lost!",
+    "chi": "你输了!",
+    "arab": "لقد خسرت!",
+    "note": "Found in main.js on line 344 with comment: "
+  },
   "last_translation_do_not_delete": {
     "note": "Keep this element for formatting purposes."
   }
