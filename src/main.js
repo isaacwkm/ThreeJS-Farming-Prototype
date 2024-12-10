@@ -71,7 +71,7 @@ function checkSpecialEvents(currentDay) {
     event.day == currentDay
   );
   for (const event of currentEvents) {
-    console.log(`Special Event: ${event.description}`);
+    confirm(`Special Event: ${event.description}`);
     console.log(event.effects);
     applySpecialEvent(event.effects);
   }
@@ -397,6 +397,8 @@ function updateHoveredTileInfo(x, y) {
     hoverInfoContainer.textContent = "";
     return;
   }
+
+  const desc = lang.localize("cellDesc", currentLanguage, translations)
   const cellDesc = `Cell at (${x}, ${y}): <br>Sun: ${grid.getSunAt(x, y)} <br>Water: ${grid.getWaterAt(x, y)}`;
 
   hoverInfoContainer.innerHTML = cellDesc;
@@ -549,27 +551,22 @@ document.body.appendChild(GameStateInfoContainer);
 function drawDayCounter() {
   // Add text to the container
   const dayCounterText = document.createElement("p"); // Use paragraph tag for text
-  const currentDayMsg = lang.localize(
-    "Current_Day",
-    currentLanguage,
-    translations,
-  ); // the non-dynamic part of the message to be displayed
-  const finalMsg = handleLangR2L(currentDayMsg, currentDay, currentLanguage); // handles final output of message for right-to-left languages
-  dayCounterText.textContent = finalMsg; // Set final static text
-
-  // Apply custom styling
-  dayCounterText.classList.add("top-right-text"); // Add CSS class
-
-  // Add a listener for the dayChanged event
-  window.addEventListener("dayChanged", () => {
+  function update() {
     const currentDayMsg = lang.localize(
       "Current_Day",
       currentLanguage,
       translations,
     ); // the non-dynamic part of the message to be displayed
-    const finalMsg = handleLangR2L(currentDayMsg, currentDay, currentLanguage); // handles final output of message for right-to-left languages
+    const finalMsg = lang.handleLangR2L(currentDayMsg, currentDay, currentLanguage); // handles final output of message for right-to-left languages
     dayCounterText.textContent = finalMsg; // Set final static text
-  });
+  }
+  update();
+
+  // Apply custom styling
+  dayCounterText.classList.add("top-right-text"); // Add CSS class
+
+  // Add a listener for the dayChanged event
+  window.addEventListener("dayChanged", update);
 
   return dayCounterText;
 }
@@ -586,31 +583,5 @@ updateHoveredTileInfo(playerCharacter.x, playerCharacter.y);
 window.addEventListener("dayChanged", () => {
   updateHoveredTileInfo(playerCharacter.x, playerCharacter.y);
 });
-
-
-function handleLangR2L(
-  leftTextComponent = String,
-  rightTextComponent = String,
-  language = String,
-) {
-  if (language == "arab") { // List all right-to-left languages here
-    return stringR2L(leftTextComponent, rightTextComponent, 1);
-  } else {
-    return stringR2L(leftTextComponent, rightTextComponent, 0);
-  }
-}
-
-function stringR2L(
-  leftTextComponent = String,
-  rightTextComponent = String,
-  R2L = Boolean,
-) {
-  let str = "";
-  if (R2L == true) {
-    return str += rightTextComponent + leftTextComponent;
-  } else { // if The function was called but the script does not need to be reversed right to left:
-    return str += leftTextComponent + rightTextComponent;
-  }
-}
 
 autosavePrompt();
