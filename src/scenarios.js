@@ -29,7 +29,7 @@ storm:
     - onion
   win_conditions:
     - plants: 15
-    - time: 20
+      time: 20
   special_events:
     - description: "Storm"
       day: 10

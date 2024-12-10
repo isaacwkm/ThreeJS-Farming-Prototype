@@ -246,7 +246,7 @@ function Redo() {
 
 
 function createSave(key) {
-  if (!key || key.trim() === "" ) {
+  if (!key || key.trim() === "") {
     console.error("Input cannot be empty");
     alert("Input cannot be empty");
     return;
@@ -334,17 +334,12 @@ function checkScenarioWin() {
   const win = adultsHarvested >= plantsRequirement.plants &&
     currentDay <= plantsRequirement.time;
   const lose = currentDay > plantsRequirement.time;
+  console.log(plantsRequirement.time);
+
   if (win) {
-    const message = lang.localize("win_message", currentLanguage, translations);
-    if (confirm(message)) {
-      window.location.reload();
-    }
     notify("win");
   } else if (lose) {
-    const message = lang.localize("lose_message", currentLanguage, translations);
-    if (confirm(message)) {
-      window.location.reload();
-    }
+    console.log("win");
     notify("lose");
   }
 }
@@ -436,6 +431,20 @@ window.addEventListener("scene-changed", () => {
   notify("dayChanged");
 });
 
+window.addEventListener("win", () => {
+  const message = lang.localize("win_message", currentLanguage, translations);
+  if (confirm(message)) {
+    window.location.reload();
+  }
+});
+
+window.addEventListener("lose", () => {
+  const message = lang.localize("lose_message", currentLanguage, translations);
+  if (confirm(message)) {
+    window.location.reload();
+  }
+});
+
 // Animation Loop
 function animate() {
   renderer.render();
@@ -472,7 +481,7 @@ for (const key of availablePlants) {
 
   // Adjusts it so the emoji is on the right for Arabic as its a RTL language
   const isRTL = currentLanguage === "arab";
-  const label = isRTL ? `${localizedLabel} ${icon}` : `${icon} ${localizedLabel}`; 
+  const label = isRTL ? `${localizedLabel} ${icon}` : `${icon} ${localizedLabel}`;
 
   gameButtons({
     label,
